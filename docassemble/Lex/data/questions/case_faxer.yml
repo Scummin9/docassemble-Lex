@@ -1,0 +1,27 @@
+objects:
+  - user: Individual
+---
+question: |
+  What is the fax number?
+fields:
+  - Fax: user.fax_number
+---
+question: |
+  What file would you like
+  to fax?
+fields:
+  - File: document
+    datatype: file
+---
+code: |
+  fax_result = send_fax(user, document)
+---
+event: statement_of_fax
+question: |
+  % if fax_result.received():
+  The fax was received.
+  % else:
+  The status of the fax is
+  ${ fax_result.status() }.
+  % endif
+reload: True

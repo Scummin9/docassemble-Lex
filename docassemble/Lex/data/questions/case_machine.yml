@@ -1,0 +1,350 @@
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+---
+code: |
+  ped1 = []
+  ped2 = []
+  ped3 = []
+  ped4 = []
+  ped5 = []
+  ped6 = []
+  ped7 = []
+  ped8 = []
+  ped9 = []
+  ped10 = []
+  the_task
+  if the_task.ready():
+    ped1 = the_task.get()
+    pred1 = []
+    for index in range(len(request)): 
+      pred1.append(str(ped1[index][0]))
+  else:
+    wait_screen
+  the_task2
+  the_task3
+  the_task4
+  the_task5
+  the_task6
+  the_task8
+---
+
+code: |
+  the_task2
+  if the_task2.ready():
+    ped2 = the_task2.get()
+    pred2 = []
+    for index in range(len(request)): 
+      pred2.append(str(ped2[index][0]))
+  else:
+    wait_screen2
+---
+
+code: |
+  the_task3
+  if the_task3.ready():
+    ped3 = the_task3.get()
+    pred3 = []
+    for index in range(len(request)): 
+      pred3.append(str(ped3[index][0]))
+  else:
+    wait_screen3
+---
+
+code: |
+  the_task4
+  if the_task4.ready():
+    ped4 = the_task4.get()
+    pred4 = []
+    for index in range(len(request)): 
+      pred4.append(str(ped4[index][0]))
+  else:
+    wait_screen4
+---
+
+code: |
+  the_task5
+  if the_task5.ready():
+    ped5 = the_task5.get()
+    pred5 = []
+    for index in range(len(request)): 
+      pred5.append(str(ped5[index][0]))
+  else:
+    wait_screen5
+---
+
+code: |
+  the_task6
+  if the_task6.ready():
+    ped6 = the_task6.get()
+    pred6 = []
+    for index in range(len(request)): 
+      pred6.append(str(ped6[index][0]))
+  else:
+    wait_screen6
+---
+
+code: |
+  the_task8
+  if the_task8.ready():
+    ped8 = the_task8.get()
+    pred8 = []
+    for index in range(len(request)): 
+      pred8.append(str(ped8[index][0]))
+  else:
+    wait_screen8
+---
+event: wait_screen
+question: |
+  |  
+  |  
+  Hang tight while the AI makes its predictions.
+reload: True
+---
+event: wait_screen2
+question: |
+  |  
+  |  
+  Hang tight while the AI makes its predictions.
+reload: True
+---
+event: wait_screen3
+question: |
+  |  
+  |  
+  Hang tight while the AI makes its predictions.
+reload: True
+---
+event: wait_screen4
+question: |
+  |  
+  |  
+  Hang tight while the AI makes its predictions.
+reload: True
+---
+event: wait_screen5
+question: |
+  |  
+  |  
+  Hang tight while the AI makes its predictions.
+reload: True
+---
+event: wait_screen6
+question: |
+  |  
+  |  
+  Hang tight while the AI makes its predictions.
+reload: True
+---
+event: wait_screen6
+question: |
+  |  
+  |  
+  Hang tight while the AI makes its predictions.
+reload: True
+---
+event: wait_screen7
+question: |
+  |  
+  |  
+  Hang tight while the AI makes its predictions.
+reload: True
+---
+event: wait_screen8
+question: |
+  |  
+  |  
+  Hang tight while the AI makes its predictions.
+reload: True
+---
+event: wait_screen9
+question: |
+  |  
+  |  
+  Hang tight while the AI makes its predictions.
+reload: True
+---
+event: wait_screen10
+question: |
+  |  
+  |  
+  Hang tight while the AI makes its predictions.
+reload: True
+---
+event: wait_screen11
+question: |
+  |  
+  |  
+  Hang tight while the AI makes its predictions.
+reload: True
+---
+code: |
+  the_task = background_action('bg_task')
+  the_task2 = background_action('bg_task2')
+  the_task3 = background_action('bg_task3')
+  the_task4 = background_action('bg_task4')
+  the_task5 = background_action('bg_task5')
+  the_task6 = background_action('bg_task6')
+  the_task8 = background_action('bg_task8')
+---
+event: bg_task8
+code: |
+  predictions8 = []
+  for index in range(len(request)): 
+    predictions8.append(RRFPobjector8.predict(request[index].name.text))
+  background_response(predictions8)
+
+---
+event: bg_task6
+code: |
+  predictions6 = []
+  for index in range(len(request)): 
+    predictions6.append(RRFPobjector6.predict(request[index].name.text))
+  background_response(predictions6)
+---
+event: bg_task5
+code: |
+  predictions5 = []
+  for index in range(len(request)): 
+    predictions5.append(RRFPobjector5.predict(request[index].name.text))
+  background_response(predictions5)
+---
+event: bg_task4
+code: |
+  predictions4 = []
+  for index in range(len(request)): 
+    predictions4.append(RRFPobjector4.predict(request[index].name.text))
+  background_response(predictions4)
+---
+event: bg_task3
+code: |
+  predictions3 = []
+  for index in range(len(request)): 
+    predictions3.append(RRFPobjector3.predict(request[index].name.text))
+  background_response(predictions3)
+---
+event: bg_task2
+code: |
+  predictions2 = []
+  for index in range(len(request)): 
+    predictions2.append(RRFPobjector2.predict(request[index].name.text))
+  background_response(predictions2)
+---
+event: bg_task
+code: |
+  predictions = []
+  for index in range(len(request)): 
+    predictions.append(RRFPobjector1.predict(request[index].name.text))
+  background_response(predictions)
+---
+
+code: |
+  RRFPobjector1 = SVMMachineLearner('rrfp1', use_initial_file=True)
+  RRFPobjector2 = SVMMachineLearner('rrfp2', use_initial_file=True)
+  RRFPobjector3 = SVMMachineLearner('rrfp3', use_initial_file=True)
+  RRFPobjector4 = SVMMachineLearner('rrfp4', use_initial_file=True)
+  RRFPobjector5 = SVMMachineLearner('rrfp5', use_initial_file=True)
+  RRFPobjector6 = SVMMachineLearner('rrfp6', use_initial_file=True)
+  RRFPobjector7 = SVMMachineLearner('rrfp7', use_initial_file=True)
+  RRFPobjector8 = SVMMachineLearner('rrfp8', use_initial_file=True)
+  RRFPobjector9 = SVMMachineLearner('rrfp9', use_initial_file=True)
+  RRFPobjector10 = SVMMachineLearner('rrfp10', use_initial_file=True)
+  sRRFPobjector1 = SimpleTextMachineLearner('srrfp1', use_initial_file=True)
+  sRRFPobjector2 = SimpleTextMachineLearner('srrfp2', use_initial_file=True)
+  sRRFPobjector3 = SimpleTextMachineLearner('srrfp3', use_initial_file=True)
+  sRRFPobjector4 = SimpleTextMachineLearner('srrfp4', use_initial_file=True)
+  sRRFPobjector5 = SimpleTextMachineLearner('srrfp5', use_initial_file=True)
+  sRRFPobjector6 = SimpleTextMachineLearner('srrfp6', use_initial_file=True)
+  sRRFPobjector7 = SimpleTextMachineLearner('srrfp7', use_initial_file=True)
+  sRRFPobjector8 = SimpleTextMachineLearner('srrfp8', use_initial_file=True)
+  sRRFPobjector9 = SimpleTextMachineLearner('srrfp9', use_initial_file=True)
+  sRRFPobjector10 = SimpleTextMachineLearner('srrfp10', use_initial_file=True)
+---
+
+code: | 
+  [item.overly_broad for item in request]
+  for index in range(len(request)): 
+    RRFPobjector1.add_to_training_set(str(request[index].name.text), str(request[index].overly_broad))
+    sRRFPobjector1.add_to_training_set(str(request[index].name.text), str(request[index].overly_broad))
+---
+
+code: | 
+  # Make sure that all Attorney_Client attributes are known before we start appending
+  [item.attorney_client for item in request]
+  for index in range(len(request)): 
+    RRFPobjector2.add_to_training_set(str(request[index].name.text), str(request[index].attorney_client))
+    sRRFPobjector2.add_to_training_set(str(request[index].name.text), str(request[index].attorney_client))
+---
+
+code: | 
+  # Make sure that all Same_Bodypart attributes are known before we start appending
+  [item.same_bodypart for item in request]
+  for index in range(len(request)):
+    RRFPobjector3.add_to_training_set(str(request[index].name.text), str(request[index].same_bodypart))
+    sRRFPobjector3.add_to_training_set(str(request[index].name.text), str(request[index].same_bodypart))
+---
+
+code: | 
+  # Make sure that all vague_ambiguous attributes are known before we start appending
+  [item.vauge_ambiguous for item in request]
+  for index in range(len(request)):
+    RRFPobjector4.add_to_training_set(str(request[index].name.text), str(request[index].vauge_ambiguous))
+    sRRFPobjector4.add_to_training_set(str(request[index].name.text), str(request[index].vauge_ambiguous))
+---
+
+code: | 
+  # Make sure that all Public_Record attributes are known before we start appending
+  [item.public_record for item in request]
+  for index in range(len(request)):
+    RRFPobjector5.add_to_training_set(str(request[index].name.text), str(request[index].public_record))
+    sRRFPobjector5.add_to_training_set(str(request[index].name.text), str(request[index].public_record))
+---
+
+code: | 
+  # Make sure that all Overbroad_Time attributes are known before we start appending
+  [item.overbroad_time for item in request]
+  for index in range(len(request)):
+    RRFPobjector6.add_to_training_set(str(request[index].name.text), str(request[index].overbroad_time))
+    sRRFPobjector6.add_to_training_set(str(request[index].name.text), str(request[index].overbroad_time))
+---
+
+code: | 
+  # Make sure that all Defendant_Possesses attributes are known before we start appending
+  [item.defendant_possesses for item in request]
+  for index in range(len(request)):
+    RRFPobjector7.add_to_training_set(str(request[index].name.text), str(request[index].defendant_possesses))
+    sRRFPobjector7.add_to_training_set(str(request[index].name.text), str(request[index].defendant_possesses))
+---
+
+code: | 
+  # Make sure that all not_reasonably_calculated attributes are known before we start appending
+  [item.not_reasonably_calculated for item in request]
+  for index in range(len(request)):
+    RRFPobjector8.add_to_training_set(str(request[index].name.text), str(request[index].not_reasonably_calculated))
+    sRRFPobjector8.add_to_training_set(str(request[index].name.text), str(request[index].not_reasonably_calculated))
+---
+
+code: | 
+  # Make sure that all interrogatory attributes are known before we start appending
+  [item.interrogatory for item in request]
+  for index in range(len(request)):
+    RRFPobjector9.add_to_training_set(str(request[index].name.text), str(request[index].interrogatory))
+    sRRFPobjector9.add_to_training_set(str(request[index].name.text), str(request[index].interrogatory))
+---
+
+code: |
+  # Make sure that all expert attributes are known before we start appending
+  [item.expert for item in request]
+  for item in request:
+    RRFPobjector10.add_to_training_set(str(item.name.text), str(item.expert))
+    sRRFPobjector10.add_to_training_set(str(item.name.text), str(item.expert))
+---
+code: | 
+  for index in range(len(request)):
+    if not any([request[index].overly_broad, request[index].attorney_client, request[index].same_bodypart, request[index].vauge_ambiguous, request[index].public_record, request[index].overbroad_time, request[index].defendant_possesses, request[index].not_reasonably_calculated, request[index].interrogatory, request[index].expert]):
+      request[index].no_wow 
+    else:
+      request[index].yes_wow
+---
+event: overly_broad
+code: |
+  for index in range(len(request)): 
+    request[index].overly_broad

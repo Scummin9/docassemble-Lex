@@ -1,0 +1,106 @@
+* {
+    font-family: "Times New Roman", Times, serif;
+}
+@media (min-width: 768px) {
+  div.table-responsive {
+    margin: 0 auto;
+    width: auto;
+    overflow-x: visible;
+  }
+
+   table.mytable {
+     /* width: 50vw; */
+     /* position: relative; */
+     left: calc(-50vw + 50%);
+  }
+}
+.offset-xl-1 {
+	/* margin-left: 25%; */
+}
+
+.badge-primary {
+	color: #fff;
+	background-color: #353A4D;
+}
+
+.btn-danger, .btn-danger:focus, .btn-danger.active, .btn-danger:active {
+  color: #000000 !important;
+  background-color: #f5a19d !important;
+  border-color: #f5a19d !important;
+}
+
+.btn-danger:hover, .show > .btn-danger.dropdown-toggle {
+  color: #e60000 !important;
+  background-color: transparent !important;
+  border-color: #e60000 !important;
+}
+
+.btn-outline-danger, .btn-outline-danger:focus, .btn-outline-danger.active, .btn-outline-danger:active {
+  color: #e60000 !important;
+  background-image: none;
+  background-color: transparent !important;
+  border-color: #e60000 !important;
+}
+
+.btn-outline-danger:hover, .show > .btn-outline-danger.dropdown-toggle {
+  color: #fff !important;
+  background-color: #e60000 !important;
+  border-color: #e60000 !important;
+}
+
+.btn-danger.disabled, .btn-danger:disabled {
+  color: #000000 !important;
+  background-color: #f5a19d !important;
+  border-color: #f5a19d !important;
+  opacity: 0.8 !important;
+}
+
+.btn-danger-gradient, .btn-danger-gradient:focus, .btn-danger.active {
+  color: #fff !important;
+  background: linear-gradient(120deg, #a51818 0%, #e60000 100%) !important;
+  border: none !important;
+}
+
+.btn-danger-gradient:hover {
+  opacity: 0.75 !important;
+}
+
+.btn-info {
+	color: #fff;
+	background-color: #979CA0;
+	border-color: #979CA0;
+}
+
+.badge-success {
+	color: #fff;
+	background-color: #353A4D;
+}
+
+.btn-success {
+	color: #fff;
+	background-color: #353A4D;
+	border-color: #353A4D;
+}
+.btn-primary {
+	color: #fff;
+	background-color: #000000;
+	border-color: #000000;
+}
+
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+	color: #fff;
+	background-color: #000000;
+}
+a {
+	color: #000000;
+	text-decoration: none;
+	background-color: transparent;
+}
+.bg-dark {
+	background-color: #000000 !important;
+}
+.btn-warning {
+	color: #fff;
+	background-color: #434B4D;
+	border-color: #434B4D;
+}

@@ -1,0 +1,140 @@
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+---
+question: |
+  % if case.juris.jurisdiction.name.text == 'federal':  
+  ${ case.fed_head() }  
+  % endif   
+  
+  
+  ${ case.doc_header() }  
+
+subquestion: |
+  ${ case.make_caption() }  
+  
+  
+  Checkmark the Motions *in limine* to include:
+
+fields:
+  - Financial condition or ability to pay a judgment.") }: case.mil_exclude_ability_to_pay
+    datatype: yesno
+  - The Court should exclude all reference, mention, argument, or evidence of remorse.: case.mil_exclude_remorse
+    datatype: yesno
+  - The Court should require that expert witnesses bring their entire file to trial to allow review of the same prior to their testimony.: case.mil_require_expert_homework
+    datatype: yesno
+  - Comments concerning the truthfulness or credibility of other parties or witnesses.: case.mil_witness_on_witness_violence
+    datatype: yesno
+  - Argument or evidence that had health insurance, or could have submitted medical expenses to Medicare or any other health insurer.: case.mil_exclude_health_insurance_counterfactual
+    datatype: yesno
+  - Any reference to “insurance discounts” or words of similar impact in an attempt to argue that billed medical expenses are *per se* unreasonable in amount.: case.mil_exclude_insurance_discounts
+    datatype: yesno
+  - Failure to seek additional treatment—failure to mitigate.: case.mil_exclude_mitigation
+    datatype: yesno
+  - The fact that a judgment would not be taxed.: case.mil_exclude_tax_free_jmnts
+    datatype: yesno
+  - Exclude Tort Reform Rhetoric.: case.mil_exclude_tort_reform
+    datatype: yesno
+  - Argument that the jury should apportion liability between the driver of the driver of the phantom vehicle.: case.mil_exclude_phantom_vehicle
+    datatype: yesno
+  - Exclude prior workers compensation claim(s).: case.mil_exclude_prior_workers_comp
+    datatype: yesno
+  - Exclude prior MVAs.: case.mil_exclude_prior_mvas 
+    datatype: yesno
+  - Exclude state of intoxication at the time.: case.mil_exclude_clients_intoxication
+    datatype: yesno
+  - Exclude participation in religious group.: case.mil_exclude_religious_group 
+    datatype: yesno
+  - Testimony from any representative of the estate.: case.mil_exclude_estate 
+    datatype: yesno
+---
+question: |
+  % if case.juris.jurisdiction.name.text == 'federal':  
+  ${ case.fed_head() }  
+  % endif   
+  
+  
+  ${ case.doc_header() }  
+
+subquestion: |
+  ${ case.make_caption() }  
+  
+  
+  Checkmark the issues to address in the Trial Memo:
+  
+  - ${ case.user_clientlist().salute() }
+  
+  - ${ case.user_clientlist().asnoun() }
+
+  - ${ case.recipients().asnoun() }
+  
+  - ${ case.user_clientlist().pronoun_subjective() }
+    
+  - ${ case.user_clientlist().salute_possessive() }
+  
+  - ${ possessify(case.recipients().asnoun(), "") }
+  
+  - ${ case.user_clientlist().pronoun_possessive("") }
+fields:
+  - Entitled to Plead and Recover Billed Medical Expenses: case.tm_entitled_to_meds_as_billed
+    datatype: yesno
+  - Medical Treatment Is Attributable to the Injury: case.tm_all_meds_attributable_to_injury
+    datatype: yesno
+  - Ability to Pay Should be Given.: case.tm_ability_to_pay
+    datatype: yesno
+  - Should be Given Because Has a Permanent Injury: case.tm_permanent_injury_instruction
+    datatype: yesno
+  - Future Possible Complications are Compensable: case.tm_future_complications_compensible
+    datatype: yesno
+  - Lay Witnesses are Competent to Testify as to Pain and Suffering: case.tm_lay_witnesses_competent_for_pain_and_suffering
+    datatype: yesno
+  - Recorded Statements of Witnesses Must be Produced.: case.tm_must_produces_recorded_statements
+    datatype: yesno
+  - Rule of Completeness: case.tm_rule_of_completeness
+    datatype: yesno
+
+  - Request that the Jury Receive a Written Copy of the Jury Instructions.: case.tm_written_jury_instruction
+    datatype: yesno
+  - The Jury Cannot Compare Negligence with the Phantom Motorist.: case.tm_phantom_motorist
+    datatype: yesno
+  - Some Witnesses Will be Testifying by Videoconference: case.tm_videoconference_testimony
+    datatype: yesno
+  - Previous Infirm Conditions and Exacerbations are Compensable: case.tm_thin_skull
+    datatype: yesno
+  - Counsel May Ask Leading Questions When Examining Adverse Witnesses: case.tm_leading_questions
+    datatype: yesno
+---
+question: |
+  % if case.juris.jurisdiction.name.text == 'federal':  
+  ${ case.fed_head() }  
+  % endif   
+  
+  
+  ${ case.doc_header() }  
+
+subquestion: |
+  ${ case.make_caption() }  
+  
+  
+  State the facts of the incident:
+fields:
+  - SOF: case.sof_tm 
+    input type: area
+    rows: 20
+---
+question: |
+  % if case.juris.jurisdiction.name.text == 'federal':  
+  ${ case.fed_head() }  
+  % endif   
+  
+  
+  ${ case.doc_header() }  
+
+subquestion: |
+  ${ case.make_caption() }  
+  
+  
+  State the issues for the jury:
+fields:
+  - SOF: case.issues_bf_jury_tm  
+    input type: area
+    rows: 7
+    

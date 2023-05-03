@@ -1,0 +1,46 @@
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+---
+question: |
+  Upload your template here.
+fields:
+  - Template: sctemplate
+    datatype: file
+---
+mandatory: True
+code: |
+  #sctemplate.set_attributes(persistent=True, private=False)
+  #sctemplate.user_access(user_id)
+---
+code: |
+  if not userdata2.defined('usertabula_non_rasa'):
+    userdata2.set("usertabula_non_rasa", usertabula_non_rasa)
+  user_template = True
+---
+code: |
+  usertabula_non_rasa = userdata2.get("usertabula_non_rasa") or DAFile("usertabula_non_rasa")
+---
+mandatory: True
+code: |
+  usertabula_non_rasa = tabula_non_rasa(sctemplate)
+  usertabula_non_rasa.initialize(filename='usertabula_non_rasa.docx') 
+  finall
+---
+objects:
+  - usertabula_non_rasa: DAFile
+---
+modules:
+  - .tabulae
+---
+objects:
+  - userdata2: DAStore
+---
+mandatory: True
+event: finall
+question: |
+  This interview is all done.
+subquestion: |
+  To start your case,
+  [download your doc],
+  
+
+  [download your doc]: ${ usertabula_non_rasa.url_for(temporary=True) }

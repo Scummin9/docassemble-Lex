@@ -1,0 +1,51 @@
+question: |
+  Customize your style:
+fields:
+  - Font: style_guide.font_name
+  - Font Size: style_guide.font_size
+  - right_indent: style_guide.right_indent
+  - first_line_indent_requests: style_guide.first_line_indent_requests
+  - first_line_indent_body: style_guide.first_line_indent_body
+  - line_spacing_body: style_guide.line_spacing_body
+  - line_spacing_bq: style_guide.line_spacing_bq
+  - line_justification_body: style_guide.line_justification_body
+  - line_spacing_rule_body: style_guide.line_spacing_rule_body
+  - line_spacing_rule_bq: style_guide.line_spacing_rule_bq
+  - XXX: style_guide.XXX
+  - XXX: style_guide.XXX
+  - XXX: style_guide.XXX
+  - XXX: style_guide.XXX
+  - XXX: style_guide.XXX
+---
+code: |
+  style_guide = userdata2.get("style_guide") or DAObject('style_guide')
+---
+code: |
+  font_name = userdata2.get("font_name") or DAObject('font_name')
+---
+code: |
+  font_size = userdata2.get("font_size") or DAObject('font_size')
+---
+code: |
+  right_indent = userdata2.get("right_indent") or DAObject('right_indent')
+---
+code: |
+  first_line_indent_requests = userdata2.get("first_line_indent_requests") or DAObject('first_line_indent_requests')
+---
+code: |
+  first_line_indent_body = userdata2.get("first_line_indent_body") or DAObject('first_line_indent_body')
+---
+code: |
+  line_spacing_body = userdata2.get("line_spacing_body") or DAObject('line_spacing_body')
+---
+code: |
+  line_spacing_bq = userdata2.get("line_spacing_bq") or DAObject('line_spacing_bq')
+---
+code: |
+  line_justification_body = userdata2.get("line_justification_body") or DAObject('line_justification_body')
+---
+code: |
+  line_spacing_rule_body = userdata2.get("line_spacing_rule_body") or DAObject('line_spacing_rule_body')
+---
+code: |
+  line_spacing_rule_bq = userdata2.get("line_spacing_rule_bq") or DAObject('line_spacing_rule_bq')

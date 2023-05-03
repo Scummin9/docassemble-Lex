@@ -1,0 +1,38 @@
+---
+code: |
+  import numpy as np
+  import numpy_financial as npf
+  rate = 0.09
+  principal = 0.0
+  interest = 0.0
+  for i in range(len(payment)):
+    z = date_difference(starting=payment[i].date)
+    time = z.years
+    principal += payment[i].amount
+    interest += principal*(rate*time)
+  interest_calculated=True
+---
+question: |
+  List all payments *missed* to date. 
+fields:
+  - date: payment[i].date
+    datatype: date
+  - amount: payment[i].amount
+    datatype: currency
+list collect: True
+---
+question: |
+  List all payments *made* to date. 
+fields:
+  - date: payment_made[i].date
+    datatype: date
+  - amount: payment_made[i].amount
+    datatype: currency
+list collect: True
+---
+objects:
+  - payment: SCPaymentList.using(there_are_any=True) 
+---
+event: interest_owed
+question: |
+  The amount of interest is ${ currency(interest) }

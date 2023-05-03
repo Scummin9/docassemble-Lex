@@ -1,0 +1,95 @@
+---
+question: |
+  Here is your document.
+subquestion: |
+  Does it meet your approval?
+yesno: user_approves
+attachment:
+  name: Your letter
+  filename: letter
+  docx template file: Witness_Questionnaire_-_TL.docx
+  valid formats:
+    - pdf
+    - docx
+---
+objects:
+  - case.lay_witnesses: SCWitnessList
+---
+question: |
+  Fill in the following information for ${ case.lay_witnesses[i] }:
+fields:
+  -	Educational History: case.lay_witnesses[i].education
+    required: False
+  -	Work history: case.lay_witnesses[i].work_history
+    datatype: area
+    rows: 5
+    required: False
+  -	Activities Observed Prior to the ${ capitalize(case.incident) }:  case.lay_witnesses[i].activities_before
+    datatype: area
+    rows: 7
+    required: False
+  -	General Health Observed Prior to the ${ capitalize(case.incident) }: case.lay_witnesses[i].general_health_before
+    datatype: area
+    rows: 7
+    required: False
+  -	How You Learned of the Collision/Injury: case.lay_witnesses[i].first_learned_of_injury
+    datatype: area
+    rows: 7
+    required: False
+  -	Injuries Observed When You First Saw Injured Party After the ${ capitalize(case.incident) }: case.lay_witnesses[i].injuries_right_after 
+    datatype: area
+    rows: 7
+    required: False
+  -	Changes in Physical Condition, as Compared to Prior to the ${ capitalize(case.incident) }: case.lay_witnesses[i].physical_condition_changes 
+    datatype: area
+    rows: 7
+    required: False
+  -	Changes in Personality as Compared to Prior to the ${ capitalize(case.incident) }:  case.lay_witnesses[i].personality_changes 
+    datatype: area
+    rows: 7
+    required: False
+  -	Other Comments: case.lay_witnesses[i].other_comments 
+    datatype: area
+    rows: 7
+    required: False
+---
+question: |
+  List All Changes in Activities as Compared to Prior to the ${ capitalize(case.incident) }: 
+fields:
+  - Activity: case.lay_witnesses[i].activity_changes[j]
+---
+question: |
+  Who is the next lay witness?
+fields:
+  - First name: case.lay_witnesses[i].name.first
+
+  - Middle initial: case.lay_witnesses[i].name.middle
+    required: False
+  - Last name: case.lay_witnesses[i].name.last
+
+  - Gender: case.lay_witnesses[i].gender
+    choices: 
+      - male
+      - female
+      - other
+  - Relationship to Client: case.lay_witnesses[i].relationship.name.text
+  - Length of Relationship: case.lay_witnesses[i].relationship.length
+---
+question: |
+  What is ${ possessify(case.lay_witnesses[i], '') }physical address?
+fields:
+  - Street: case.lay_witnesses[i].address.address
+    address autocomplete: True
+  - Unit: case.lay_witnesses[i].address.unit
+    required: False
+  - City: case.lay_witnesses[i].address.city
+  - State: case.lay_witnesses[i].address.state
+    choices:
+      state_list()
+  - Zip: case.lay_witnesses[i].address.zip
+---
+question: |
+  What is ${ possessify(case.lay_witnesses[i], '') }phone number?
+fields:
+  - Phone: case.lay_witnesses[i].phone
+---

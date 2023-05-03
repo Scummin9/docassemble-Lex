@@ -1,0 +1,80 @@
+---
+question: | 
+  What number do you want to give the first exhibit?
+fields:
+  - Exhibit: exhibits.primis
+    datatype: number
+    default: 1
+---
+question: |
+  Upload some files
+fields:
+  - Files: exhibits
+    datatype: files
+---
+table: exhibits.table
+rows: exhibits
+columns:
+  - Name: row_item.filename
+allow reordering: True
+---
+question: |
+  Please reorder the documents
+subquestion: |
+  ${ exhibits.table }
+continue button field: exhibits.finalized
+---
+code: |
+  if exhibits.number() == 1:
+    exhibits.finalized = True
+---
+#mandatory: True
+code: |
+  exhibits.finalized
+  exhibits.primis
+  for exhibit in exhibits:
+    exhibit.numerus = str(int(exhibits.primis + exhibits.index(exhibit)))
+  exhibits.converted
+  final_s
+  collect_and_label_exhibits=True
+---
+code: |
+  if not processing_task.ready():
+    waiting_screen
+  exhibits.converted = True
+---
+code: |
+  processing_task = background_action('process_files')
+---
+event: process_files
+code: |
+  combined_file = pdf_concatenate(overlay_pdf(exhibit, exhibit.number_along.pdf, multi=True) for exhibit in exhibits)
+  background_response_action('store_processed_file', the_file=combined_file)
+---
+event: store_processed_file
+code: |
+  final_document = action_argument('the_file')
+  background_response()
+---
+generic object: DAFile
+attachment:
+  variable name: x.number_along
+  docx template file: numbering_template.docx
+---
+event: waiting_screen
+question: Please wait . . .
+reload: True
+---
+event: final_s
+question: Done
+subquestion: |
+  ${ final_document }
+---
+mandatory: False
+question: Done
+subquestion: |
+  % for exhibit in exhibits:
+  * [First PDF](${ exhibit.url_for() })
+  * [Second PDF](${ exhibit.number_along.pdf.url_for() })
+  
+  % endfor

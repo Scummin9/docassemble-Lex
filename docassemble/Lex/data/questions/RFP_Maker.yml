@@ -1,0 +1,43 @@
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+---
+objects:
+  - case.nonnegligence: DAList.using(object_type=Thing, there_are_any=True)
+  - case.inv_comparatives: DAList.using(object_type=Thing, there_are_any=True)
+---
+question: |
+  Type, edit, or copy-paste the ${ ordinal(i) } RFP here:
+fields:
+  - Request: case.rfps[i].name.text
+    input type: area
+    rows: 10
+---
+question: |
+  Are there any more RFPs?
+yesno: case.rfps.there_is_another
+---
+only sets: case.rfps.prepopulated
+code: |
+  if case.request_ordinal == 'First':
+    case.rfps.clear()
+    for index in range(len(case.impetra_rfps())):
+      case.rfps[index].name.text = str(case.impetra_rfps()[index])
+    #for i in range(len(case.rfps)):
+      #case.rfps[i].name.text = case.rfps[i]
+    if case.rfps.number_gathered():
+      case.rfps.there_is_another = False
+      case.rfps.gathered = True
+  case.rfps.prepopulated = True
+---
+objects:
+  - case.rfps: SCList.using(object_type=SCRequests, there_are_any=True)
+---
+metadata:
+  unlisted: True
+  title: RFP Maker | Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+  authors:
+    - name: Scott M Cumming
+    - organization: ©2021 Scott Cumming ALL RIGHTS RESEVERED
+  revision date: 7-3-2021
+  required privileges:
+    - admin
+    - customer

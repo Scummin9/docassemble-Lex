@@ -1,0 +1,295 @@
+---
+continue button field: rfps.edited
+table css class: table mytable
+question: |
+  Review your RFPs below
+subquestion: |
+  ${ rfps.table }
+  
+  ${ rfps.add_action(label='Add Another RFP') }
+  
+---
+table: rfps.table
+rows: rfps
+columns:
+  - "": | 
+      '**REQUEST FOR PRODUCTION NO. ' + str(row_index + 1) + ": **"  
+  -  "": |
+      row_item.name.text
+edit:
+  - name.text
+allow reordering: True
+---
+continue button field: rrog.edited
+table css class: table mytable
+question: |
+  Review the RROGs below*
+subquestion: |
+  ${ rrog.table }
+  
+  ${ rrog.add_action(label='Add Another ROG') }
+
+  *Lawyers should pay close attention to the original ROG when making objections. The machine's Optical Character Recognition is only a tool to help lawyers, and it is no replacement for lawyering. The thing about Optical Character Recognition is that it's . . . *not perfect* . . . . Especially when it comes to numbers . . . . Occasionally, this can result in a material misinterpretation, of which the lawyer should be wary. 
+  
+  **For example, this RFP**
+  
+  
+  > Please produce documents showing the decedent’s earned income *from 2015 to the time of his death*, including but not limited to pay stubs, work orders, invoices, contracts, receipts, and check registers.
+  
+  
+  **could be ready by the machine as**
+  
+  
+   > Please produce documents showing the decedent’s earned income *from 20 to the time of his death*, including but not limited to pay stubs, work orders, invoices, contracts, receipts, and check registers.
+   
+   
+   **resulting in a confusing read. It could also, however, be interpreted as **
+   
+   
+    > Please produce documents showing the decedent’s earned income *from 2011 to the time of his death*, including but not limited to pay stubs, work orders, invoices, contracts, receipts, and check registers.
+      
+      
+  **resulting in a less confusing but perhaps more objectionable read. **
+  
+  Particularly when it comes to dates and other numbers, lawyers should cross reference the ROGs produced by Optical Character Recognition with the original to ensure accuracy. You can press the **Edit** button to the right of any particular ROG below to edit it for accuracy. You can also edit the ROG in Word when you get the draft RROG. 
+---
+table: rrog.table
+rows: rrog
+columns:
+  - "": | 
+      '**INTERROGATORY NO. ' + str(row_index + 1) + ": **"  
+  -  "": |
+      row_item.name.text
+edit:
+  - name.text
+allow reordering: True
+---
+continue button field: rrog_objection_review
+need: rrog_table
+table css class: table mytable
+question: |
+  Review your objections:
+subquestion: |
+  ${ rrog_table }
+---
+table: rrog_table
+rows: rrog
+columns:
+  - "": | 
+      '**INTERROGATORY NO. ' + str(row_index + 1) + ": **"  
+  - "": |
+      row_item.name.text
+  - "": |
+      row_item.impetra_rrog_objections(parties.rrog_recipients(lawfirms[0].clientlist(case)), lawfirms[0].clientlist(case))
+edit:
+  - not_reasonably_calculated
+allow reordering: True
+---
+mandatory: True
+code: |
+  objection_review
+---
+continue button field: request.edited
+table css class: table mytable
+question: |
+  Review the RFPs below*
+subquestion: |
+  ${ request.table }
+  
+  ${ request.add_action(label='Add Another RFP') }
+  
+  *Lawyers should pay close attention to the original RFP when making objections. The machine's Optical Character Recognition is only a tool to help lawyers, and it is no replacement for lawyering. The thing about Optical Character Recognition is that it's . . . *not perfect* . . . . Especially when it comes to numbers . . . . Occasionally, this can result in a material misinterpretation, of which the lawyer should be wary. 
+  
+  **For example, this RFP**
+  
+  
+  > Please produce documents showing the decedent’s earned income *from 2015 to the time of his death*, including but not limited to pay stubs, work orders, invoices, contracts, receipts, and check registers.
+  
+  
+  **could be ready by the machine as**
+  
+  
+   > Please produce documents showing the decedent’s earned income *from 20 to the time of his death*, including but not limited to pay stubs, work orders, invoices, contracts, receipts, and check registers.
+   
+   
+   **resulting in a confusing read. It could also, however, be interpreted as **
+   
+   
+    > Please produce documents showing the decedent’s earned income *from 2011 to the time of his death*, including but not limited to pay stubs, work orders, invoices, contracts, receipts, and check registers.
+      
+      
+  **resulting in a less confusing but perhaps more objectionable read. **
+  
+  Particularly when it comes to dates and other numbers, lawyers should cross reference the RFPs produced by Optical Character Recognition with the original to ensure accuracy. You can press the **Edit** button to the right of any particular RFP below to edit it for accuracy. You can also edit the RFP in Word when you get the draft RRFP. 
+---
+table: request.table
+rows: request
+columns:
+  - "": | 
+      '**REQUEST FOR PRODUCTION NO. ' + str(row_index + 1) + ": **"  
+  -  "": |
+      row_item.name.text
+edit:
+  - name.text
+allow reordering: True
+---
+continue button field: objection_review
+need: request_table
+table css class: table mytable
+question: |
+  Review your objections:
+subquestion: |
+  ${ request_table }
+---
+table: request_table
+rows: request
+columns:
+  - "": | 
+      '**REQUEST FOR PRODUCTION NO. ' + str(row_index + 1) + ": **"  
+  - "": |
+      row_item.name.text
+  - "": |
+      row_item.impetra_rrfp_objections() 
+edit:
+  - not_reasonably_calculated
+allow reordering: True
+---
+table: parties.table1
+rows: parties
+columns:
+  - "": | 
+      '**Party ' + str(row_index + 1) + ": **"  
+  - "Name": |
+      row_item.name.full()
+edit: True
+allow reordering: True
+---
+table: lawfirms.table1
+rows: lawfirms
+columns:
+  - "": | 
+      '**Law Firm ' + str(row_index + 1) + ": **"  
+  - "Name": |
+      row_item.name.text
+edit:
+  - name.text
+allow reordering: True
+---
+table: lawyers.table1
+rows: lawyers
+columns:
+  - "": | 
+      '**Lawyer ' + str(row_index + 1) + ": **"  
+  - "Name": |
+      row_item.name.full()
+edit:
+  - name.first
+allow reordering: True
+---
+continue button field: parties.edited1
+table css class: table mytable
+question: |
+  Review your answers here:
+subquestion: |
+  ${ parties.table1 }
+  
+  ${ parties.add_action(label='Add Another Party') }
+---
+continue button field: lawfirms.edited1
+table css class: table mytable
+question: |
+  Review your answers here:
+subquestion: |
+  ${ lawfirms.table1 }
+  
+  ${ lawfirms.add_action(label='Add Another Law Firm') }
+---
+continue button field: lawyers.edited1
+table css class: table mytable
+question: |
+  Review your answers here:
+subquestion: |
+  ${ lawyers.table1 }
+  
+  ${ lawyers.add_action(label='Add Another Lawyer') }
+---
+table: parties.table
+rows: parties
+columns:
+  - "": | 
+      '**Party ' + str(row_index + 1) + ": **"  
+  - "Name": |
+      row_item.name.full()
+  - "Designation": |
+      row_item.designation
+  - "Represented By": |
+      row_item.firms
+  - "Gender": |
+      row_item.gender if isinstance(row_item, SCIndividual) else '--'
+edit:
+  - name.first
+  - designation
+  - gender
+allow reordering: True
+---
+table: lawfirms.table
+rows: lawfirms
+columns:
+  - "": | 
+      '**Law Firm ' + str(row_index + 1) + ": **"  
+  - "Name": |
+      row_item.name.text
+  - "Address": |
+      row_item.address.block()
+edit:
+  - name.text
+  - address
+allow reordering: True
+---
+table: lawyers.table
+rows: lawyers
+columns:
+  - "": | 
+      '**Lawyer ' + str(row_index + 1) + ": **"  
+  - "Name": |
+      row_item.name.full()
+  - "Firm": |
+      row_item.firm
+  - "Email": |
+      row_item.email
+  - "Gender": |
+     row_item.gender
+edit:
+  - name.first
+  - gender
+  - email
+  - firm
+allow reordering: True
+---
+continue button field: parties.edited
+table css class: table mytable
+question: |
+  Review your answers here:
+subquestion: |
+  ${ parties.table }
+  
+  ${ parties.add_action(label='Add Another Party') }
+---
+continue button field: lawfirms.edited
+table css class: table mytable
+question: |
+  Review your answers here:
+subquestion: |
+  ${ lawfirms.table }
+  
+  ${ lawfirms.add_action(label='Add Another Law Firm') }
+---
+continue button field: lawyers.edited
+table css class: table mytable
+question: |
+  Review your answers here:
+subquestion: |
+  ${ lawyers.table }
+  
+  ${ lawyers.add_action(label='Add Another Lawyer') }
+---

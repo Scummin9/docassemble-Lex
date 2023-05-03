@@ -1,0 +1,761 @@
+---
+event: clio_manage
+question: |
+  Manage your Clio credentials
+subquestion: |
+  If you want to delete your Clio credentials, you can do so.
+  ${ action_button_html(url_action('delete_credentials'), label="Delete Clio Credentials", color="danger") }
+  Otherwise, you can go back to the Armory.
+continue button label: Armory
+field: manage_credentials
+---
+event: delete_credentials
+code: |
+  ZClio.delete_credentials()
+---
+initial: True
+code: |
+  ZClio.authorize(ClioZ)
+  ZClio.authorize(ClioL)
+---
+code: |
+  if parties.new_type in ('business entity', 'governmental entity'):
+    parties.new_object_type = SCPerson
+  else:
+    parties.new_object_type = SCIndividual
+---
+if: hasattr(parties, 'new_type')
+code: |
+  parties[i].type = parties.new_type
+  del parties.new_type
+---
+code: |
+  if not parties[i].is_alien:
+    parties[i].type
+    parties[i].name.full()
+    parties[i].is_alien = False
+    parties[i].data = {}
+    parties[i].complete = True
+---
+code: |
+  if parties[i].is_alien:
+    parties[i].type = parties[i].name.caption_type
+---
+question: |
+  What type of entity is the ${ ordinal(parties.current_index()) } party?
+field: parties.new_type
+buttons:
+  - Individual: individual
+  - Individual Under Pseudonym: individual proceeding under a pseudonym
+  - Trustee: trustee
+  - Guardian ad litem: guardian ad litem
+  - Individual D/B/A: doing business as
+  - Business Entity: business entity
+  - Governmental Entity: governmental entity
+---
+question: | 
+  What is ${ lawyers[i].possessive('') }gender? 
+fields:
+  - Gender: lawyers[i].gender
+    choices:
+    - male
+    - female
+    - other
+---
+question: | 
+  What is the name that ${ parties[i].designation } ${ parties[i] } is doing business under? 
+fields:
+  - d/b/a: parties[i].dba
+---
+question: | 
+  What is the name of the trust of which ${ parties[i].designation } ${ parties[i] } is trustee? 
+fields:
+  - Trust: parties[i].trust
+---
+question: | 
+  Date of the inident:
+fields:
+  - Date of Incident: case.doi
+    datatype: date
+---
+question: |
+  Time of the incident:
+fields:
+  - Time of Incident: case.toi
+    datatype: time
+    required: False
+---
+question: |
+  What type of entity is ${ parties[i] }?
+fields: 
+  - Type: parties[i].name.caption_type
+    datatype: combobox
+    code: |
+      party_types
+---
+question: |
+  How do you want the description after ${ parties[i].possessive('') }name to appear in the caption?
+fields:
+  - Caption Description Text: parties[i].caption_text
+    required: False
+    default: |
+      ${ parties[i].caption_description() }
+---
+code: |
+  for party in parties:
+    party.caption_description = party.caption_description()
+---
+mandatory: False
+code: |
+  for item in ('userfirm', 'userstamp'):
+    userdata2.delete(item)
+  for item in 'attorneyuser':
+    userdata2.delete(item)
+---
+mandatory: True
+code: |
+  set_parts(title='Armory | Trial Legend', logo='<img src="' + company_logo.url_for() + '" style="height: 35px; width: 35px;">')
+---
+code: |
+  charlist = []
+  othercharlist = []
+  caption_characters = 0
+  othercaption_characters = 0
+  for party in add_separators(parties.the_ps().caption(), separator=", ",  last_separator=", and ", end_mark=', '):
+    charlist.append(party)
+  charstring = ''.join(charlist)
+  caption_characters = len(charstring)
+  for party in add_separators(parties.the_ds().caption(), separator=", ",  last_separator=", and ", end_mark=', '):
+    othercharlist.append(party)
+  othercharstring = ''.join(othercharlist)
+  othercaption_characters = len(charstring) + len(othercharstring)
+---
+question: |
+  Is this a federal or a state case?
+fields: 
+  - Jurisdiction: case.juris.jurisdiction
+    choices: 
+    - federal
+    - state
+---
+question: |
+  In which division is this case filed?
+fields:
+  - Division: case.juris.division
+    code: | 
+      divisions
+---
+question: |
+  In which district is this case filed?
+fields:
+  - Division: case.juris.district
+    code: | 
+      districts
+---
+question: |
+  In which county is this case filed?
+fields:
+  - County: case.juris.county
+    code: |
+      orcounties
+---
+question: |
+  In which state is this case filed?
+fields:
+  - State: case.juris.state
+    code: |
+      states_list()
+---
+code: |
+  districts = []
+  for item in FedCourts[str(state_name(case.juris.state))]:
+    districts.append(item)
+  if len(districts) == 1:
+    case.juris.district = districts[0]
+---
+code: |
+  the_state = FedCourts[str(state_name(case.juris.state))]
+  divisions = []
+  for item in the_state[str(case.juris.district)]:
+    divisions.append(item)
+  if len(divisions) == 1:
+    case.juris.division = divisions[0]
+---
+include: 
+  - ClioFed.yml
+---
+mandatory: True
+code: |
+  menu_items = [ action_menu_item('Main menu', 'switch_destination', destination='main menu') ]
+  destination = 'main menu'
+---
+code: |
+  case.destination = destination
+---
+event: switch_destination
+code: |
+  destination = action_argument('destination')
+---
+event: main_menu
+right: |
+    ${ the_armory_icon } 
+question: |
+  The weapons laid forth before you were crafted using legendary sources of power, wisdom, and knowledge. Weild them to your advantage. Gain the upper hand. Tip the scales of justice in your favor. Trial Legend. 
+subquestion: |
+  [${rrfp_maker_icon }](${ url_action('switch_destination', destination='RRFP') })
+  
+  [${ rr_theog_icon }](${ url_action('switch_destination', destination='RROG') })
+  
+  [${ rfp_maker_icon }](${ url_action('switch_destination', destination='RFP') })
+  
+  [ ${ alchemy_icon} ](${ url_action('switch_destination', destination='Clio') })
+  
+  [ test Caption ](${ url_action('switch_destination', destination='Caption') })
+undefine:
+  - my_documents
+---
+objects:
+  - rrfp_maker_icon: DAStaticFile.using(filename='RRFP_Maker.png', alt_text='RRFP Maker')
+  - rr_theog_icon: DAStaticFile.using(filename='Rog_Rog.png', alt_text='Rog Rog The OG') 
+  - the_armory_icon: DAStaticFile.using(filename='the_armory.png', alt_text='The Armory') 
+  - rfp_maker_icon: DAStaticFile.using(filename='rfpmaker.png', alt_text='RFP Maker') 
+  - alchemy_icon: DAStaticFile.using(filename='Alchemist.png', alt_text='Alchemy') 
+---
+mandatory: True
+code: |
+  if destination == 'main menu':
+    main_menu
+  elif destination == 'RRFP':
+    curreRRFP
+  elif destination == 'RROG':
+    curreRROG
+  elif destination == 'RFP':
+    curreRFP
+  elif destination == 'Alchemy':
+    curreAlchemy
+  elif destination == 'Caption':
+    juris.edited
+  elif destination == 'Clio':
+    clio_manage
+---
+only sets: case_info
+code: |
+  case.info = ClioZ.quaero_matter_contact_ids_w_type(case)
+  #voodoo
+  case_info = True
+---
+event: voodoo
+question: |
+
+  
+  
+  * ${ case.info }
+  
+  
+---
+only sets: alien_invasion
+code: |
+  case.aliens = SCList('case.aliens', there_are_any=True, auto_gather=False)
+  for item in case.info:
+    rawData = item 
+    case.aliens.appendObject()
+    case.aliens[-1] = AliensInvade(rawData)
+  case.aliens.there_is_another = False
+  case.aliens.gathered = True
+  #mothership
+  alien_invasion = True
+---
+event: mothership
+question: |
+  % for alien in parties:
+  * ${ alien.payload() } 
+  * ${ alien.beam } 
+  % endfor
+---
+only sets: martian_party
+code: |
+  parties.clear()
+  for x in case.aliens: 
+    if (x.is_client is not None and x.is_client == True) or (x.is_party is not None and x.is_party == True):
+      if x.clio_type is not None and x.clio_type == 'Person':
+        parties.appendObject(SCIndividual)
+        parties[-1].is_alien = True
+        parties[-1].is_client = x.is_client
+        parties[-1].is_party = True
+        parties[-1].is_party_id = x.is_party_id
+        parties[-1].is_party_vid = x.is_party_vid
+        parties[-1].is_lawyer = False
+        parties[-1].is_lawyer_id = x.is_lawyer_id
+        parties[-1].is_lawyer_vid = x.is_lawyer_vid
+        parties[-1].is_lawfirm = False
+        parties[-1].is_lawfirm_id = x.is_lawfirm_id
+        parties[-1].is_lawfirm_vid = x.is_lawfirm_vid
+        parties[-1].clio_type = x.clio_type
+        parties[-1].name.first = x.name.first
+        if x.name.middle is not None:
+          parties[-1].name.middle = x.name.middle
+        else: 
+          parties[-1].name.middle = ''
+        parties[-1].name.last = x.name.last
+        parties[-1].id = x.id
+        parties[-1].data = x
+        if x.designation is not None and x.designation != '':
+          parties[-1].designation = x.designation
+        parties[-1].designation_id = x.designation_id
+        parties[-1].designation_vid = x.designation_vid
+        if x.gender is not None and x.gender != '':
+          if x.gender in ('male', 'female', 'other'):
+            parties[-1].gender = x.gender
+        parties[-1].gender_id = x.gender_id
+        parties[-1].gender_vid = x.gender_vid
+        if x.name.caption_type is not None and x.name.caption_type != '':
+          parties[-1].name.caption_type = x.name.caption_type
+        parties[-1].name.caption_type_id = x.name.caption_type_id
+        parties[-1].name.caption_type_vid = x.name.caption_type_vid
+        if x.caption_text is not None and x.caption_text != '':
+          parties[-1].caption_text = x.caption_text
+        parties[-1].caption_text_id = x.caption_text_id
+        parties[-1].caption_text_vid = x.caption_text_vid
+      else:
+        parties.appendObject(SCPerson)
+        parties[-1].is_alien = True
+        parties[-1].is_client = x.is_client
+        parties[-1].is_party = True
+        parties[-1].is_party_id = x.is_party_id
+        parties[-1].is_party_vid = x.is_party_vid
+        parties[-1].is_lawyer = False
+        parties[-1].is_lawyer_id = x.is_lawyer_id
+        parties[-1].is_lawyer_vid = x.is_lawyer_vid
+        parties[-1].is_lawfirm = False
+        parties[-1].is_lawfirm_id = x.is_lawfirm_id
+        parties[-1].is_lawfirm_vid = x.is_lawfirm_vid
+        parties[-1].clio_type = x.clio_type
+        parties[-1].name.text = x.name.text
+        parties[-1].id = x.id
+        parties[-1].data = x
+        if x.designation is not None and x.designation != '':
+          parties[-1].designation = x.designation
+        parties[-1].designation_id = x.designation_id
+        parties[-1].designation_vid = x.designation_vid
+        #if x.designation is not None and x.designation != '':
+          #parties[-1].business_entity.name.text = x.business_entity.name.text
+        #parties[-1].business_entity.name.text_id = x.business_entity.name.text_id
+        #parties[-1].business_entity.name.text_vid = x.business_entity.name.text_vid
+        if x.name.caption_type is not None and x.name.caption_type != '':
+          parties[-1].name.caption_type = x.name.caption_type
+        parties[-1].name.caption_type_id = x.name.caption_type_id
+        parties[-1].name.caption_type_vid = x.name.caption_type_vid
+        if x.caption_text is not None and x.caption_text != '':
+          parties[-1].caption_text = x.caption_text
+        parties[-1].caption_text_id = x.caption_text_id
+        parties[-1].caption_text_vid = x.caption_text_vid
+      parties[-1].complete = True
+  martian_party = True
+---
+question: |
+  Which attorneys from your firm are "on the brief"?
+fields:
+  - ${ ordinal(i) } Chair: ourhouse[i]
+    datatype: object
+    choices:
+      attorneyuser
+list collect: True
+---
+objects: 
+  - ourhouse: DAList.using(there_are_any=True)
+---
+only sets: martian_trial
+code: |
+  lawyers.clear()
+  lawfirms.clear()
+  lawfirms[0] = userfirm.copy_deep('lawfirms[0]')
+  for i in range(len(ourhouse)):
+    lawyers[i] = ourhouse[i].copy_deep('lawyers[i]')
+  for x in case.aliens: 
+    if x.is_lawyer is not None and x.is_lawyer == True:
+      if x.clio_type is not None and x.clio_type == 'Person':
+        lawyers.appendObject(SCIndividual)
+        lawyers[-1].is_alien = True
+        lawyers[-1].name.first = x.name.first
+        if x.name.middle is not None:
+          lawyers[-1].name.middle = x.name.middle
+        else: 
+          lawyers[-1].name.middle = ''
+        lawyers[-1].name.last = x.name.last
+        lawyers[-1].id = x.id
+        lawyers[-1].data = x
+        if x.gender is not None and x.gender != '':
+          if x.gender in ('male', 'female', 'other'):
+            lawyers[-1].gender = x.gender
+        if x.email is not None and x.email != '':
+          lawyers[-1].email = x.email
+        lawyers[-1].id = x['id']
+        if x.company is not None and x.company.name is not None:
+          lawfirms.appendObject()
+          lawfirms[-1].is_alien = True
+          lawfirms[-1].name.text = x.company.name
+          lawfirms[-1].id = x.company.id
+          lawfirms[-1].data = x.company
+          if x.address is not None:
+            if x.address.address is not None and x.address.address != '':
+              lawfirms[-1].address.address = x.address.address
+            if x.address.city is not None and x.address.city != '':
+              lawfirms[-1].address.city = x.address.city
+            if x.address.state is not None and (x.address.state in states_list() or x.address.state in state_names()):
+              lawfirms[-1].address.state = x.address.state
+            if x.address.zip is not None and x.address.zip != '':
+              lawfirms[-1].address.zip = x.address.zip
+          lawyers[-1].firm = lawfirms[-1]
+  martian_trial = True
+---
+only sets: user_firm_renamed
+code: |
+  for firm in lawfirms:
+    if lawyers[0].firm.name.text == firm.name.text:
+      lawyers[0].firm = firm
+  user_firm_renamed = True
+---
+only sets: firm_data
+code: |
+  for x in info:
+    for firm in lawfirms:
+      if x['id'] == firm.id:
+        firm.data = x
+  firm_data = True
+---
+event: curreRRFP
+code: |
+  user_set_up
+  if ZClio.active():
+    onetwostep
+    case_info
+    alien_invasion
+    martian_party
+    #voodoo
+    martian_trial
+    user_firm_renamed
+    party_hard1
+    party_hard3
+    parties.edited1
+    fun_party
+    lawfirms.edited
+    lawyers.edited1
+    fun_lawfirm
+    fun_law
+    parties.edited
+    lawyers.edited
+    clients_related
+    lawyers_related
+    scotty
+    mothership
+    draft = 'RRFP'
+  else:
+    copy_attorney_user
+    copy_user_firm
+    user_firm_renamed
+    parties.edited
+    clients_related
+    lawyers_related
+    lawfirms.edited
+    lawyers.edited
+    parties.gather()
+  request.prepopulated
+  request.gather()
+  request.edited
+  objection_review
+  clients_related
+  lawyers_related
+  caption_test
+---
+event: legs
+question: |
+  % for party in parties:
+  
+  
+  * ${ party.payload() }
+  
+  % endfor
+---
+only sets: scotty
+code: | 
+  for party in parties: 
+    beam = ClioZ.beam(party)
+    legs
+  #for atty in lawyers[1:]:
+    #ClioZ.beam(atty)
+  scotty = True
+---
+event: eyeball_fun
+question: | 
+  % for fun in parties:
+  * ${ fun } DATA -- ${ fun.data }
+  * ${ fun } ID -- ${ fun.id }
+  * ${ fun } INSTANCE -- ${ fun.instanceName }
+  % endfor
+#  * ${ fun } RENOVATIO -- ${ fun.balls }
+#  * JSON PARTY -- ${ variables_as_json() }
+#  * ${ fun } EFFICIO DATA -- ${ fun.efficio }
+---
+question: | 
+  % for fun in parties:
+  * ${ fun } DATA -- ${ fun.data }
+  * ${ fun } EFFICIO DATA -- ${ fun.efficio }
+  * ${ fun } ID -- ${ fun.id }
+  * ${ fun } RENOVATIO -- ${ fun.balls }
+
+  % endfor
+#  
+#* ALL VARIABLES -- ${ variables_as_json() }
+---
+sets: lawyers_related
+code: |
+  case.lawyer_lawfirm_rel.clear()
+  for firm in lawfirms:
+    for attorney in lawyers.work_for(firm):
+      case.lawyer_lawfirm_rel.appendObject()
+      case.lawyer_lawfirm_rel[-1].lawyer = attorney
+      case.lawyer_lawfirm_rel[-1].lawfirm = firm
+  case.lawyer_lawfirm_rel.there_is_another = False
+  case.lawyer_lawfirm_rel.gathered = True
+  lawyers_related = True
+depends on:
+  - lawfirms
+  - lawyers
+---
+sets: clients_related
+code: |
+  case.firm_client.clear()
+  for firm in lawfirms:
+    for clients in parties.client_of(firm):
+      case.firm_client.appendObject()
+      case.firm_client[-1].lawfirm = firm
+      case.firm_client[-1].client = clients
+  case.firm_client.there_is_another = False
+  case.firm_client.gathered = True
+  clients_related = True
+depends on:
+  - lawfirms
+  - parties
+---
+objects:
+  - case: SCCase
+  - case.lawyer_lawfirm_rel: SCList.using(object_type=DAObject, auto_gather=False)
+  - case.firm_client: SCList.using(object_type=DAObject, auto_gather=False)
+---
+question: |
+  Who are the attorneys involved?
+fields:
+  - First name: lawyers[i].name.first
+    required: False
+  - Middle initial: lawyers[i].name.middle
+    required: False
+  - Last name: lawyers[i].name.last
+    required: False
+  - pro hac vice: lawyers[i].pro_hac_vice
+    datatype: yesno
+---
+question: | 
+  What firm does ${ lawyers[i] } work at?
+fields:
+  - Law Firm: lawyers[i].firm
+    datatype: object
+    choices:
+      lawfirms
+---
+question: | 
+  What is ${ lawyers[i].possessive('') } bar number?
+fields:
+  - Bar Number: lawyers[i].bar_no
+  - State Bar: lawyers[i].barred_in
+    code: |
+      states_list()
+---
+question: | 
+  Besides ${ lawyers } are there any more attorneys involved?
+yesno: lawyers.there_is_another
+---
+question: | 
+  what law firms are involved?
+fields:
+  - Law Firm: lawfirms[i].name.text
+list collect: 
+  enable: True
+  allow delete: False
+---
+question: |
+  Besides ${ lawfirms }, are there any more law firms involved in this case?
+yesno: lawfirms.there_is_another 
+---
+question: |
+  What is ${ lawyers[i].possessive('') }email address?  
+fields:
+  - Email: lawyers[i].email
+    datatype: email
+---
+question: |
+  What is ${ lawyers[i].possessive('') }bar number?  
+fields:
+  - osb: lawyers[i].osb
+    datatype: number
+    minlength: 6
+    maxlength: 6
+---
+question: |
+  About the ${ ordinal(i) } party.
+fields:
+  - First Name: parties[i].name.first
+  - Middle Initial: parties[i].name.middle
+    required: False
+  - Last Name: parties[i].name.last
+---
+question: |
+  What is ${ parties[i].possessive('gender')}?  
+fields:
+  - Gender: parties[i].gender
+    choices: 
+      - male
+      - female
+      - other
+---
+question: |
+  About  the ${ ordinal(i) } party.
+fields:
+  - Name: parties[i].name.text
+---
+question: |
+  What is ${ parties[i].possessive('') } party designation in this matter?
+fields:
+  - Party Designation: parties[i].designation
+    code: |
+      designations
+---
+question: |
+  Which firm(s) represent ${ parties[i].designation } ${ parties[i] }?
+fields:
+  - no label: parties[i].firms[j].name.text
+    #datatype: object
+    code: | 
+      lawfirms
+list collect: True
+---
+question: Are there any more parties besides ${ parties }?
+yesno: parties.there_is_another
+---
+objects:
+  - parties: SCList.using(there_are_any=True, ask_object_type=True, complete_attribute='complete')
+  - parties[i].firms: SCList.using(object_type=SCPerson, there_are_any=True)
+---
+question: |
+  What is your firm's address?
+fields:
+  - Firm: userfirm.name.text
+  - Street: userfirm.address.address
+    address autocomplete: True
+  - Unit: userfirm.address.unit
+    required: False
+  - City: userfirm.address.city
+  - State: userfirm.address.state
+    code: |
+      states_list()
+  - Zip: userfirm.address.zip
+  - Phone: userfirm.phone
+  - Fax: userfirm.fax
+---
+only sets: copy_user_firm
+code: |
+  lawfirms[0] = userfirm.copy_deep('lawfirms[0]')
+  copy_user_firm = True
+---
+question: |
+  Fill in your information:
+fields:
+  - First Name: attorneyuser[i].name.first
+  - Middle Initial: attorneyuser[i].name.middle
+    required: False
+  - Last Name: attorneyuser[i].name.last
+  - Gender: attorneyuser[i].gender
+    choices: 
+      - male
+      - female
+      - other
+  - OSB: attorneyuser[i].osb
+    datatype: number
+    minlength: 6
+    maxlength: 6
+  - Work Email: attorneyuser[i].email
+    datatype: email
+  - Firm: attorneyuser[i].firm
+    datatype: object
+    choices:
+    - userfirm
+    default: userfirm
+---
+question: |
+  Besides ${ attorneyuser }, are there any more lawyers at your law firm?
+yesno: attorneyuser.there_is_another
+---
+only sets: copy_attorney_user
+code: |
+  for i in range(len(attorneyuser)):
+    lawyers[i] = attorneyuser[i].copy_deep('lawyers[i]')
+  copy_attorney_user = True
+---
+question: |
+  Upload your firm's stamp to use in your documents.
+fields:
+  - Image: userstamp
+    datatype: file
+---
+code: |
+  userfirm.name.text
+  if not userdata2.defined("userfirm"):
+    userdata2.set("userfirm", userfirm)
+  
+  attorneyuser.gather()
+  if not userdata2.defined("attorneyuser"):
+    userdata2.set("attorneyuser", attorneyuser)
+
+  if not userdata2.defined('userstamp'):
+    userdata2.set("userstamp", userstamp)
+  user_set_up = True
+---
+only sets: user_firm_renamed
+code: |
+  for firm in lawfirms:
+    if lawyers[0].firm.name.text == firm.name.text:
+      lawyers[0].firm = firm
+  user_firm_renamed = True
+---
+code: |
+  userfirm = userdata2.get("userfirm") or SCPerson('userfirm')
+---
+code: |
+  attorneyuser = userdata2.get("attorneyuser") or SCList('attorneyuser', there_are_any=True, object_type=SCIndividual)
+---
+code: |
+  userstamp = userdata2.get("userstamp") or DAFile('userstamp')
+---
+objects:
+  - lawfirms: SCList.using(object_type=SCPerson, there_are_any=True, is_alien=False)
+  - lawyers: SCList.using(object_type=SCIndividual, there_are_any=True, is_alien=False)
+---
+features:
+  centered: False
+---
+imports:
+  - random
+---
+modules:
+  - .cases
+  - .legeteme1
+---
+include:
+  - case_rrfp_maker.yml
+  - case_the_og.yml
+  - case_generics.yml
+  - Lists.yml
+  - EULA.yml
+  - case_tables.yml
+  - case_clio2.yml
+  - RFP_Maker.yml
+  - Algor.yml

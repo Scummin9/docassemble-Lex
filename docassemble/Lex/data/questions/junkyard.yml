@@ -1,0 +1,487 @@
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+event: clio_manage
+question: |
+  Manage your Clio credentials
+subquestion: |
+  If you want to delete your Clio credentials, you can do so.
+  ${ action_button_html(url_action('delete_credentials'), label="Delete Clio Credentials", color="danger") }
+  Otherwise, you can go back to the Armory.
+continue button label: Armory
+field: manage_credentials
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+event: delete_credentials
+code: |
+  ZClio.delete_credentials()
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+initial: False
+code: |
+  ZClio.authorize(ClioZ)
+  ZClio.authorize(ClioL)
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+only sets: ensure_ids
+code: |
+  id_case.lawyers
+  id_parties
+  id_case.lawfirms
+  ensure_ids = True
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+only sets: id_case.lawyers
+code: |
+    for atty in case.lawyers[int(housechairs):]:
+      if not hasattr(atty, 'id'):
+        #terrarize(atty, case)
+        ix = ClioZ.facio_contact(atty)
+        alien_id(atty, ix)
+    id_case.lawyers = True
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+only sets: id_parties
+code: |
+    for party in case.parties:
+      party.designation = party.party_type
+      if not hasattr(party, 'id'):
+        #terrarize(party, case)
+        ix = ClioZ.facio_contact(party)
+        alien_id(party, ix)
+    id_parties = True
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+only sets: id_case.lawfirms
+code: |
+    for firm in case.lawfirms[1:]:
+      if not hasattr(firm, 'id'):
+        firm.is_lawfirm = True
+        #terrarize(firm, case)
+        ix = ClioZ.facio_contact(firm)
+        alien_id(firm, ix)
+    id_case.lawfirms = True  
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+only sets: scotty
+code: | 
+  for party in case.parties: 
+    party.beam = ClioZ.beam(party, case)
+    alien_id(party, party.beam)
+  
+  for atty in case.lawyers[int(housechairs):]:
+    atty.is_lawyer = True
+    atty.beam = ClioZ.beam(atty, case)
+    alien_id(atty, atty.beam)
+  
+  for atty in case.lawfirms[1:]:
+    atty.beam = ClioZ.beam(atty, case)
+    alien_id(atty, atty.beam)
+  
+  scotty = True
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+objects:
+  - case.lawyer_lawfirm_rel: SCList.using(object_type=DAObject, auto_gather=False)
+  - case.firm_client: SCList.using(object_type=DAObject, auto_gather=False)
+---
+code: |
+  log("associate_firms_with_case1")
+  for firm in case.lawfirms:
+    log("associate_firms_with_case2")
+    #firm.name.text = firm.name.text
+    firm.save_if_nascent()
+    log("associate_firms_with_case3")
+    case.add_lawfirm(firm)
+    log("associate_firms_with_case4")
+  associate_firms_with_case = True
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+code: |
+  #case.lawyer_lawfirm_rel = SCList('case.lawyer_lawfirm_rel', there_are_any=True, auto_gather=False)
+  case.lawyer_lawfirm_rel.clear()
+  for firm in case.lawfirms:
+    log("FIRM1")
+    for attorney in case.attorneys_who_work_at(firm):
+      log("FIRM2")
+      #attorney.save_if_nascent()
+      case.lawyer_lawfirm_rel.appendObject()
+      log("FIRM3")
+      case.lawyer_lawfirm_rel[-1].lawyer = attorney
+      log("FIRM4")
+      case.lawyer_lawfirm_rel[-1].lawfirm = firm
+      log("FIRM5")
+      firm.add_lawyer(attorney)
+      log("FIRM6")
+      case.add_lawyer(attorney)
+      log("FIRM7")
+      attorney.add_lawfirm(firm)
+      log("FIRM8")
+  case.lawyer_lawfirm_rel.there_is_another = False
+  case.lawyer_lawfirm_rel.gathered = True
+  lawyers_related = True
+depends on:
+  - case.lawfirms
+  - case.lawyers
+---
+only sets: case.firm_client
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+code: |
+  #case.firm_client = SCList('case.firm_client', there_are_any=True, auto_gather=False)
+  log("About to CLIENTS_RELATED")
+  case.firm_client.clear()
+  for firm in case.lawfirms:
+    log("CLIENTS_RELATED 1")
+    firm.save_if_nascent()
+    log("CLIENTS_RELATED 2")
+    for clients in case.parties.client_of(firm):
+      log("CLIENTS_RELATED 3")
+      #clients.save_if_nascent()
+      case.firm_client.appendObject()
+      log("CLIENTS_RELATED 4")
+      case.firm_client[-1].lawfirm = firm
+      log("CLIENTS_RELATED 5")
+      case.firm_client[-1].client = clients
+      log("CLIENTS_RELATED 6")
+      #firm.add_party(clients)
+      #case.add_party(clients)
+  log("CLIENTS_RELATED 7")
+  case.firm_client.there_is_another = False
+  case.firm_client.gathered = True
+  clients_related = True
+depends on:
+  - case.lawfirms
+  - case.parties
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+only sets: user_firm_renamed
+code: |
+  for firm in case.lawfirms:
+    for lawyer in case.lawyers:
+      if lawyer.firm == firm.name.text:
+        lawyer.firm = firm
+        firm.add_lawyer(lawyer)
+  user_firm_renamed = True
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+   
+
+subquestion: |
+  # Which attorneys from your firm are "on the brief"?
+  %for party in case.parties:
+  
+  * ${ party.party_type.name.text } ${ party }.
+
+
+  %endfor
+fields:
+  - ${ ordinal(i) } Chair: case.ourhouse[i]
+    datatype: object
+    choices:
+      profile3.attorneys
+list collect: True
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+objects:
+  - case.ourhouse: SCList.using(there_are_any=True)
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+only sets: user_firm_renamed2
+code: |
+  for firm in case.lawfirms:
+    if str(case.lawyers[0].firm)== str(firm.name.text):
+      case.lawyers[0].firm = firm
+  log("user_firm_renamed")
+  user_firm_renamed2 = True
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  % if case.juris.jurisdiction.name.text == 'federal':
+  ${ case.fed_head() }
+  % endif
+
+
+  ${ case.doc_header() }
+
+subquestion: |
+  ${ case.make_caption() }
+
+
+  ${ case.dear_recipients() }
+
+
+  ${ case.response_intro() }
+
+  #
+
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+only sets: get_user
+code: |
+  log("START GET_USER")
+  case.lawfirms[0] = Lawfirm.by_id(profile3.firm.id)
+  case.lawfirms[0].name.text =   case.lawfirms[0].name.text
+  case.lawfirms[0].is_userfirm = True
+  log("case.lawfirms[0].db_read()")
+  get_user = True
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+only sets: get_chairs
+code: |
+  for i in range(len(case.ourhouse)):
+    log("START OURHOUSE")
+    #case.lawyers[i].name.first = case.ourhouse[i].name.first.strip()
+    #case.lawyers[i].name.middle = case.ourhouse[i].name.middle.strip()
+    #case.lawyers[i].name.last = case.ourhouse[i].name.last.strip()
+    #case.lawyers[i].bar_no = case.ourhouse[i].bar_no.strip()
+    #case.lawyers[i].email = case.ourhouse[i].email.strip()
+    #case.lawyers[i].firm = Lawfirm.by_id(profile3.firm.id)
+    #case.lawyers[i].complete_lawyer = True
+
+    case.lawyers[i] = Lawyer.by_id(case.ourhouse[i].id)
+    case.lawyers[i].is_attorneyuser = True
+    #case.lawyers[i].save_if_nascent() 
+    case.lawyers[i].db_read() 
+  housechairs = len(case.ourhouse)
+  get_chairs = True
+---
+only sets: party_hard2
+code: |
+  log("PARTY_HARD2 ")
+  for party in case.parties:
+      log("PARTY " + party.name.full())
+      log("ABOUT TO ... SAVE_IF_NASCENT")
+      #party.save_if_nascent()
+      log("SAVE_IF_NASCENT")
+      party.db_read()
+      log("DB_READ")
+      case.add_party(party)
+      log("ADD_PARTY")
+  party_hard2 = True
+---
+only sets: party_hard3
+code: |
+  log("About to PARTY_HARD3")
+  for firm in case.lawfirms:
+    log("LAWFIRM " + firm.name.text)
+    for party in case.parties:
+      log("PARTY " + party.name.full())
+      for law in party.firms:
+        log(party.name.full() + "FIRM " + law.name.text)
+        if str(law.name.text) == str(firm.name.text):
+          log("STEP 1 -- Adding PARTY " + party.name.full() + " to LAWFIRM " + firm.name.text)
+          law = firm
+          log("STEP 2 -- Adding PARTY " + party.name.full() + " to LAWFIRM " + firm.name.text)
+          firm.add_party(party)
+          case.add_lawfirm_party(party, lawfirm)
+  party_hard3 = True
+---
+only sets: lawyer_hard3
+code: |
+  for lawyer in case.lawyers:
+    for firm in case.lawfirms:
+      if lawyer.firm == firm.name.text:
+        lawyer.firm = firm
+  lawyer_hard3 = True
+---
+only sets: testes
+code: |
+      case.parties.clear()
+      case.lawfirms.clear()
+      case.lawyers.clear()
+      case.lawfirms.appendObject()
+      case.lawfirms[-1].name.text = "Stoll Borne"
+      case.lawfirms[-1].address.address = "521 3rd Street"
+      case.lawfirms[-1].address.unit = "Suite 202"
+      case.lawfirms[-1].address.state = "OR"
+      case.lawfirms[-1].address.city = "Bend"
+      case.lawfirms[-1].address.zip = "97702"
+      case.lawfirms.appendObject()
+      case.lawfirms[-1].name.text = "Dwyer Williams Cherkoss, P.C."
+      case.lawfirms[-1].address.address = "521 3rd Street"
+      case.lawfirms[-1].address.unit = "Suite 202"
+      case.lawfirms[-1].address.state = "OR"
+      case.lawfirms[-1].address.city = "Bend"
+      case.lawfirms[-1].address.zip = "97702"
+      case.parties.appendObject()
+      case.parties[-1].party_type.name.text = "Plaintiff"
+      case.parties[-1].name.text = "Polly Plaintiff"
+      case.parties[-1].name.caption_type = "governmental entity"
+      case.parties[-1].caption_text = ""
+      case.parties[-1].firms[0] = "Dwyer Williams Cherkoss, P.C."
+      case.parties[-1].firms.there_is_another = False
+      case.parties[-1].firms.gathered = True
+
+      case.parties.appendObject()
+      case.parties[-1].party_type = "Defendant"
+      case.parties[-1].name.text = "Dudley Defendant"
+      case.parties[-1].name.caption_type = "governmental entity"
+      case.parties[-1].caption_text = ""
+      case.parties[-1].firms[0] = "Stoll Borne"
+      case.parties[-1].firms.there_is_another = False
+      case.parties[-1].firms.gathered = True
+      case.lawyers.appendObject()
+      case.lawyers[-1].name.first = "Scott"
+      case.lawyers[-1].name.last = "Cumming"
+      case.lawyers[-1].name.middle = ""
+      case.lawyers[-1].firm = "Dwyer Williams Cherkoss, P.C."
+      case.lawyers[-1].gender = "male"
+      case.lawyers[-1].email = "scottc@rdwyer.com"
+      case.lawyers.appendObject()
+      case.lawyers[-1].name.first = "Opposing"
+      case.lawyers[-1].name.last = "Counsel"
+      case.lawyers[-1].name.middle = ""
+      case.lawyers[-1].firm = "Stoll Borne"
+      case.lawyers[-1].gender = "male"
+      case.lawyers[-1].email = "OC@opposing.com"
+      case.lawfirms.there_is_another = False
+      case.lawyers.there_is_another = False
+      case.parties.there_is_another = False
+      case.lawfirms.gathered = True
+      case.lawyers.gathered = True
+      case.parties.gathered = True
+      case.juris.jurisdiction.name.text = "state"
+      case.juris.state.name.text = "OR"
+      case.juris.county.name.text = "Deschutes"
+      case.docket_number = "22CV00000"
+      testes=True
+---
+only sets: new_lawyers_created
+code: |
+  for party in lawyers[1:]:
+    if not hasattr(party, 'data'):
+      party.data = {}
+    if not hasattr(party, 'id'):
+      party.eyed = ClioZ.praetento_contact(party.name.full())['data']
+      if len(party.eyed) == 0: 
+        if isinstance(party, SCIndividual):
+          party.data = ClioZ.facio_contact(party, "Person")
+        else:
+          party.data = ClioZ.facio_contact(party, "Company")
+      else: 
+        if len(party.eyed) == 1:
+          party.is_contact
+          if party.is_contact == True:
+            party.id = ide['id']
+          else: 
+            if isinstance(party, SCIndividual):
+              party.data = ClioZ.facio_contact(party, "Person")
+            else:
+              party.data = ClioZ.facio_contact(party, "Company")
+        else:
+          eyes
+          party.are_contact
+          xxx = eyed.index(party.are_contact)
+          ide = eyed[xxx]
+          party.id = ide['id']
+    ClioZ.effio_relationship(party, case, str("Attorney for " + party.firm.clientlist(case).asnoun() + comma_and_list(party.firm.clientlist(case))))
+  new_lawyers_created = True
+---
+only sets: new_lawfirms_created
+code: |
+  for firm in lawfirms:
+    if not hasattr(firm, 'data'):
+      firm.data = {}
+    if not hasattr(firm, 'id'):
+      eyed = ClioZ.praetento_contact(firm.name.text)
+      erra
+      if eyed == False: 
+        firm.id = ClioZ.facio_contact(firm, "Company")['id']
+      else: 
+        erra
+        firm.id = eyed['id']
+  new_lawfirms_created = True
+---
+event: erra
+question: |
+  * ${ eyed }
+  % for eye in eyed:
+  *${ eye }
+  % endfor
+---
+only sets: lawyers_updated2
+code: |
+  key1='name'
+  key2="Gender"
+  key3="is_lawyer"
+  key4="Represents"
+  key5="primary_address"
+  for party in lawyers[1:]:
+    party.data['first_name'] = party.name.first 
+    party.data['middle_name'] = party.name.middle
+    party.data['last_name'] = party.name.last 
+    party.data['primary_email_address'] = party.email
+    if key1 in party.data:
+      del party.data['name']
+    if key2 in party.data:
+      party.data['Gender'] = {'value': party.gender,  'id': party.data['Gender id']}
+    else: 
+      party.data['Gender'] = {'value': party.gender,  'custom_field':{'id': case.contact_ids_dict['Gender']}}
+    if key3 in party.data:
+      party.data['is_lawyer'] = {'value': True,  'id': party.data['is_lawyer id']}
+    else: 
+      party.data['is_lawyer'] = {'value': True,  'custom_field':{'id': case.contact_ids_dict['is_lawyer']}}
+    if key4 in party.data:
+      party.data['Represents'] = {'value': comma_list(party.firm.clientlist(case)),  'id': party.data['Represents id']}
+    else: 
+      party.data['Represents'] = {'value': comma_list(party.firm.clientlist(case)),  'custom_field':{'id': case.contact_ids_dict['Represents']}}
+    party.data['company'] = {'id': party.firm.id}
+    if key5 in party.data:
+      law_address = party.data['primary_address']
+    else:
+      law_address = {}
+    law_address['street'] = party.firm.address.address 
+    law_address['city'] = party.firm.address.city
+    law_address['province'] = party.firm.address.state
+    law_address['postal_code'] = party.firm.address.zip
+    party.data['primary_address'] = law_address
+    party.data['custom_field_values'] = [party.data['Gender'], party.data['is_lawyer'], party.data['Represents']]
+    ClioZ.renovatio_contact_data(party, invalid)
+  lawyers_updated2 = True
+--- 
+code: |
+      for firm in lawfirms:
+        if firm.name.text in comma_and_list(material_contacts):
+          for datum in matterials:
+            if firm.name.text == datum['name']:
+              its_address = datum['primary_address']
+              for firm in lawfirms: 
+                if len(its_address['street']):
+                   firm.address.address = its_address['street']
+                if len(its_address['city']):
+                   firm.address.city = its_address['city']
+                if len(its_address['province']):
+                  firm.address.state = its_address['province']
+                if len(its_address['postal_code']):
+                  firm.address.zip = its_address['postal_code']
+      firm_hard = True
+---
+code: |
+  parties.clear()
+  for item in matterials: 
+    if item['is_client'] == True:
+      if str(item['type']) in 'Person':
+        parties.appendObject(SCIndividual)
+        parties[-1].name.first = item['first_name']
+        if item['middle_name'] != None:
+          parties[-1].name.middle = item['middle_name']
+        else: 
+          parties[-1].name.middle = ''
+        parties[-1].name.last = item['last_name']
+        for yy in sed['custom_field_values']:
+          if yy['field_name'] == 'Gender':
+            if yy['value'] != None:
+              if yy['value'] == 'male' or 'm':
+                parties[-1].gender = 'male'
+              elif yy['value'] == 'female' or 'f':
+                parties[-1].gender = 'female'
+              else:
+                parties[-1].gender = 'other'
+              parties.there_is_another = True
+            else: 
+              contacts_custom_dictlist.append(ClioZ.update_contact_customfield(item['id'], contact_ids_dict['Gender'], str(parties[-1].gender)))
+        #parties.there_is_another = True
+      else:
+        parties.appendObject(SCPerson)
+        parties[-1].name.text = item['name']
+        #parties.there_is_another = True

@@ -1,0 +1,50 @@
+---
+question: |
+  Type of Delaration?
+fields:
+  - no label: case.declaration_type
+    choices:
+    - Witness
+    - Lawyer
+    - Party
+    - Expert
+    - Treating Provider
+---
+objects:
+  - case.declarations: SCList.using(object_type=Thing)
+---
+question: |
+  List the declarations you make in support of your motion:
+subquestion: |
+  I, ${ case.lawyers[0].name.full() }, declare as follows:
+fields:
+  - That: case.declarations[i].name.text
+    datatype: area
+    rows: 5
+list collect: True
+---
+event: declaror
+question: |
+  Your documents
+attachment code: |
+  declaration
+---
+question: |
+  Type of Delaration?
+fields:
+  - no label: case.declaration_type
+    choices:
+    - Witness
+    - Lawyer
+    - Party
+    - Expert
+    - Treating Physician
+---
+question: |
+  What motion are you drafting?
+fields:
+  - Motion: case.motion_type
+    choices:
+    - Motion to Postpone
+    - Motion to Amend to Allege Punitive Damages
+    - Petition to Appoint GAL

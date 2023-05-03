@@ -1,0 +1,275 @@
+
+---
+objects:
+  - case.provider: |
+      DAList.using(
+        object_type=SCPerson,
+        ask_number=True)
+  - case.injury: |
+      DAList.using(
+        there_are_any=True)
+  - case.nonpre_injury: |
+      DAList.using(
+        there_are_any=True)
+  - case.brec_id: DAList
+  - case.true_and_accurate: DAList
+  - case.public_record: DAList
+  - case.damaged_prop: DAList.using(object_type=Thing)
+  - case.damaged_prop[i].parts: DAList.using(object_type=Thing)
+  - case.request: DAList
+---
+question: |
+  How many major treatment providers are there?
+subquestion: |
+  Consider a treatment provider major if it is worth using 1 of 30 requests to ask Defendant to admit the reasonablness and necessity of the treatment.
+fields:
+  - Number: case.provider.target_number
+    datatype: integer
+    min: 1
+    max: 10
+---
+sets:
+  - provider[i].name.text
+question: |
+  What are the providers' names and dates of service?
+fields:
+  code: provider_list
+---
+question: |
+  What are Plaintiff's top injuries for trial?
+subquestion: |
+  Consider an injury a top injury if it's worth 1 of 30 requests for defendant to admit to causing.
+fields:
+  - Injury ${ i + 1 }: injury[i]
+    input type: combobox
+    code: |
+      sorted(diagnosis)
+    required: False
+list collect: True
+---
+question: |
+  Are there any public records you would like Defendant to admit are public records under OEC 806(8)?
+subquestion: |
+  **OEC 806(8)** Records, reports, statements or data compilations, in any form, of public offices or agencies, including federally recognized American Indian tribal governments, setting forth:
+  
+  * (a)The activities of the office or agency;
+
+  * (b) Matters observed pursuant to duty imposed by law as to which matters there was a duty to report, excluding, in criminal cases, matters observed by police officers and other law enforcement personnel;
+
+  * (c) In civil actions and proceedings and against the government in criminal cases, factual findings, resulting from an investigation made pursuant to authority granted by law, unless the sources of information or other circumstances indicate lack of trustworthiness; or
+
+  * (d) In civil actions and criminal proceedings, a sheriff' return of service.
+yesno: public_record.there_are_any
+---
+question: |
+  So far, the public records include ${ public_record }.
+  Are there any others?
+yesno: public_record.there_is_another
+---
+question: |
+  List the institutional author of the public record below. E.g., "Springfield PD".
+subquestion: |
+  **OEC 806(8)** Records, reports, statements or data compilations, in any form, of public offices or agencies, including federally recognized American Indian tribal governments, setting forth:
+  
+  * (a)The activities of the office or agency;
+
+  * (b) Matters observed pursuant to duty imposed by law as to which matters there was a duty to report, excluding, in criminal cases, matters observed by police officers and other law enforcement personnel;
+
+  * (c) In civil actions and proceedings and against the government in criminal cases, factual findings, resulting from an investigation made pursuant to authority granted by law, unless the sources of information or other circumstances indicate lack of trustworthiness; or
+
+  * (d) In civil actions and criminal proceedings, a sheriff' return of service.
+fields:
+  - Public Entity/Author ${ i + 1 }: public_record[i]
+---
+question: |
+  Which is Plaintiff's injuries is it worth 1 of 30 requests for defendant to admit did not preexist the incident?
+fields:
+  - Non-Preexisting Injury ${ i + 1 }: nonpre_injury[i]
+    input type: combobox
+    code: |
+      sorted(diagnosis)
+list collect: True
+---
+question: |
+  Are there any significant property damages that may imply high noneconomic damages (e.g., a totaled vehicle involved in a collision)
+yesno: damaged_prop.there_are_any
+---
+question: |
+  So far, the property damage you are asking Defendant to admit includes ${ damaged_prop }.
+  Are there any others?
+yesno: damaged_prop.there_is_another
+---
+question: |
+  What property was damaged?
+fields:
+  - Damaged Property ${ i +1 }: damaged_prop[i].name.text
+    hint: "e.g., Defendant's vehicle, Plaintiff's truck, etc."
+---
+question: |
+  What are the estimated damages to ${ damaged_prop[i] }?
+fields:
+  - Estimated Amount of Damage: damaged_prop[i].estimate
+    datatype: currency
+---
+question: |
+  Was ${ damaged_prop[i] } totaled as a result of ${ incident }?
+yesno: damaged_prop[i].totaled 
+---
+question: |
+  Can the damages to ${ damaged_prop[i] } be listed by part?
+subquestion: |
+  For example, if you have an estimate for Defendant's car, you might be able to say that "Defendant's front bumper, front bumper cover, etc. all needed to be replaced, which cost $X," rather than just saying, "Defendant's car was damaged and it cost $X."
+yesno: damaged_prop[i].parts.there_are_any
+---
+question: |
+  List the parts of ${ damaged_prop[i] } that were damaged.
+fields:
+  - ${ ordinal (i) } Part: damaged_prop[i].parts[j].name.text
+    input type: combobox
+    code: |
+      sorted(parts_list)
+list collect: True
+---
+code: | 
+  for index in range(len(damaged_prop)):
+    damaged_prop[index].parts.there_are_any
+---
+question: |
+  Who owned/owns ${ damaged_prop[i] }?
+fields:
+  - Owner: damaged_prop[i].owner
+    input type: combobox
+    code: |
+      sorted(common_parties)
+---
+question: |
+  So far, the business records include ${ brec_id }.
+  Are there any others?
+yesno: brec_id.there_is_another
+---
+question: |
+  Are there any businessrecords do you want Defendant to admit are business records within the meaning of OEC 803(6)?
+yesno: brec_id.there_are_any
+---
+question: |
+  What business records do you want Defendant to admit are business records within the meaning of OEC 803(6)?
+subquestion: |
+  **OEC 803(6)**:  A memorandum, report, record, or data compilation, **in any form,** of: 
+  
+  * **acts, events, conditions, opinions, or diagnoses**, 
+  
+  * **made at or near the time** by, or from information transmitted by, a person with knowledge, 
+  
+  * if **kept in the course of a regularly conducted business activity**, and 
+  
+  * if it was the **regular practice of that business activity to make** the memorandum, report, record, or data compilation, 
+  
+  * all as shown by the testimony of the custodian or other qualified witness, unless the source of information or the method of circumstances of preparation indicate lack of trustworthiness. 
+  
+  * The term **'business'** as used in this subsection includes **business, institution, association, profession, occupation, and calling of every kind**, whether or not conducted for profit.
+fields:
+  - Business ${ i + 1 } Name: brec_id[i]
+list collect: True
+---
+question: |
+  Are there any documents worth 1 out of 30 requests to ask Defendant to admit that they are true and accurate copies (and therefore admit there is a foundation for admissibility)?
+fields:
+  - Document ${ i + 1 } is a true and accurate copy of: true_and_accurate[i]
+list collect: True
+---
+question: |
+  So far, the documents you want defendant to admit are authentic include ${ true_and_accurate }.
+  Are there any others?
+yesno: true_and_accurate.there_is_another
+---
+question: |
+  Are there any documents worth 1 out of 30 requests to ask Defendant to admit that they are authentic (and therefore admit there is a foundation for admissibility)?
+yesno: true_and_accurate.there_are_any
+---
+code: |
+  set_parts(title='RFA Creator © Scott Cumming 2021 – ' + plaintiff[0].last_name())
+  provider
+  injury
+  nonpre_injury
+  brec_id 
+  true_and_accurate 
+  damaged_prop
+  damaged_prop_estimate
+  public_record
+  damages['noneconomic']
+  damages['economic']['Past Meds']
+  damages['economic']['Earning Capacity']
+  damages['economic']['Lost Wages']
+  RFA_length = len(provider + injury + nonpre_injury + brec_id + true_and_accurate + damaged_prop + public_record)
+  if 'Premises Liability' in claims:
+    RFA_length = RFA_length + 2
+  if damages['noneconomic'] >0:
+    RFA_length = RFA_length + 1
+  if damages['economic']['Past Meds'] >0:
+    RFA_length = RFA_length + 4
+  if damages['economic']['Earning Capacity'] >0:
+    RFA_length = RFA_length + 1
+  if damages['economic']['Lost Wages'] >0:
+    RFA_length = RFA_length + 1
+  if 'Premises Liability' in claims:
+    RFA_length = RFA_length + 2
+  request
+---
+question: |
+  You have requested ${ int(RFA_length) } admissions from Defendant so far.
+  Do you want to add any others?
+yesno: request.there_are_any
+---
+question: |
+  You have ${ 30 - int(RFA_length) } requests remaining.
+fields:
+  - REQUEST FOR ADMISSION NO. ${ (i +1) }: request[i]
+    input type: area
+    required: False
+list collect: True
+help: 
+  label: |
+    Relevant ORCPs
+  content: |
+    **ORCP 45A Request for admission:** After commencement of an action, a party may serve on any other party a request for the admission by the latter of the truth of relevant matters within the scope of Rule 36 B specified in the request, including facts or opinions of fact, or the application of law to fact, or of the genuineness of any relevant documents or physical objects described in or exhibited with the request. Copies of documents shall be served with the request unless they have been or are otherwise furnished or made available for inspection and copying. Each matter of which an admission is requested shall be separately set forth. The request may, without leave of court, be served on the plaintiff after commencement of the action and on any other party with or after service of the summons and complaint on that party. . . . 
+    **ORCP 45D Effect of Admission:** Any matter admitted pursuant to this rule is conclusively established unless the court on motion permits withdrawal or amendment of the admission. . . .
+    **ORCP 45F(1) [Number] Generally:** Excluding requests identified in subsection F(2) of this rule, a party may serve more than one set of requested admissions on an adverse party but the total number of requests shall not exceed 30, unless the court otherwise orders for good cause shown after the proposed additional requests have been filed. In determining what constitutes a request for admission for the purpose of applying this limitation in number, it is intended that each request be counted separately, whether or not it is subsidiary or incidental to or dependent upon or included in another request, and however the requests may be grouped, combined, or arranged.
+    **ORCP 45F(2)[Number]  Requests Related to Admissibility of Business Records:** Notwithstanding subsection F(1) of this rule, and in addition to any requests made under that subsection, a party may serve a reasonable number of additional requests for admission to establish the authenticity and admissibility of documents under ORS 40.460 (6) (Rule 803(6) of the Oregon Evidence Code).
+     **ORCP 36 B(1) [Scope of Discovery] In General:** For all forms of discovery, parties may inquire   regarding any matter, not privileged, that is relevant to the claim or defense of the party seeking discovery or to the claim or defense of any other party, including the existence, description, nature, custody, condition, and location of any books, documents, or other tangible things, and the identity and location of persons having knowledge of any discoverable matter. It is not a ground for objection that the information sought will be inadmissible at the trial if the information sought appears reasonably calculated to lead to the discovery of admissible evidence.
+    **ORCP 46 C Expenses on Failure to Admit:** If a party fails to admit the genuineness of any document or the truth of any matter, as requested under Rule 45, and if the party requesting the admission thereafter proves the genuineness of the document or the truth of the matter, the party requesting the admission may apply to the court for an order requiring the other party to pay the party requesting the admission the reasonable expenses incurred in making that proof, including reasonable attorney fees. 
+    The court shall make the order unless it finds that: 
+    * the request was held objectionable pursuant to Rule 45 B or C; 
+    * the admission sought was of no substantial importance; 
+    * the party failing to admit had reasonable grounds to believe that it might prevail on the matter; or 
+    * there was other good reason for the failure to admit.
+---
+code: |
+  provider_list = list()
+  for index in range(provider.number()):
+    provider_list.append(
+      {"label": ordinal(index, capitalize=True) + " provider's",
+       "field": "provider[" + str(index) + "].name.text"
+      })
+    provider_list.append(
+      {"label": ordinal(index, capitalize=True) + " provider's start date",
+       "field": "provider[" + str(index) + "].start_date",
+         "datatype": "date"
+      })
+    provider_list.append(
+      {"label": ordinal(index, capitalize=True) + " provider's end date",
+       "field": "provider[" + str(index) + "].end_date",
+         "datatype": "date"
+      })
+---
+
+need: agrees_to_tos
+Question: |
+  Here is your RFA:
+attachment:
+  name:  RFA 
+  filename: "RFA to Defendant ${ defendantrec[0].last_name() } - ${ plaintiff[0].last_name() }"
+  update references: True
+  docx template file: rfa1_135.docx
+  valid formats:
+  - pdf
+  - docx

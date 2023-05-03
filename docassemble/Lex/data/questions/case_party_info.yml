@@ -1,0 +1,247 @@
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  What is the name that ${ case.parties[i].party.party_type.name.text } ${ case.parties[i].party } is doing business under?
+fields:
+  - d/b/a: case.parties[i].party.dba
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  What is the name of the trust of which ${ case.parties[i].party.party_type.name.text } ${ case.parties[i].party } is trustee?
+fields:
+  - Trust: case.parties[i].party.trust
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  Is the Defendant ${ case.parties[i].party.party_type.name.text } ${ possessify(case.parties[i], "") }Principle Place of Business different from its address?
+fields:
+  - Different PPB: case.parties[i].party.ppb_diff
+    datatype: yesnoradio
+    default: False
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+Question: |
+  Address for ${ case.parties[i].party.party_type.name.text } ${ possessify(case.parties[i], "") }PPB:
+fields:
+  - Street Address: case.parties[i].party.ppb.address.address
+    address autocomplete: True
+  - Unit: case.parties[i].party.ppb.address.unit
+  - City: case.parties[i].party.ppb.address.city
+  - State: case.parties[i].party.ppb.address.state
+    code: |
+      states_list()
+  - Zip: case.parties[i].party.ppb.address.zip
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+Question: |
+  Address for ${ case.parties[i].party.party_type.name.text } ${ case.parties[i].party }:
+fields:
+  - Street Address: case.parties[i].party.address.address
+    address autocomplete: True
+  - Unit: case.parties[i].party.address.unit
+  - City: case.parties[i].party.address.city
+  - State: case.parties[i].party.address.state
+    code: |
+      states_list()
+  - Zip: case.parties[i].party.address.zip
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  List ${ case.parties[i].party.party_type.name.text } ${ possessify(case.parties[i], 'survivors') } survivors:
+fields:
+  - First Name: case.parties[i]survivors[j].name.first
+  - Middle Initial: case.parties[i]survivors[j].name.middle
+    required: False
+  - Last Name: case.parties[i]survivors[j].name.last
+  - Gender: case.parties[i]survivors[j].gender
+    choices:
+      - male
+      - female
+      - other
+  - Relationship: case.parties[i]survivors[j].rel
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  Who is the decedent of the estate for which ${ case.parties[i].party.name.full() } is personal representative?
+fields:
+  - First Name: case.parties[i].party.name.decedent.name.first
+  - Middle Initial: case.parties[i].party.name.decedent.name.middle
+    required: False
+  - Last Name: case.parties[i].party.name.decedent.name.last
+  - Gender: case.parties[i].party.name.decedent.gender
+    choices:
+      - male
+      - female
+      - other
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+need: plaintiff[i].name.first
+question: |
+  What is ${ case.parties[i].party.party_type.name.text } ${ possessify(case.parties[i], 'race') }.
+fields:
+  - Race: plaintiff[i].race
+    choices:
+      - white
+      - hispanic
+      - black
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  What is ${ case.parties[i].party.party_type.name.text } ${ possessify(case.parties[i], '') }birthdate?
+fields:
+  - Birth Date: case.parties[i].party.birthdate
+    datatype: date
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+objects:
+  - case: Case
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  Does ${ case.parties[i].party.party_type.name.text } ${ case.parties[i].party } require surgery because of this ${ case.incident }?
+yesno: case.parties[i].party.surgery_required
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  Has ${ case.parties[i].party.party_type.name.text } ${ case.parties[i].party } already had surgery because of this ${ case.incident }?
+noyes: case.parties[i].party.future_surgery
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  Will ${ case.parties[i].party.party_type.name.text } ${ possessify(case.parties[i], "") }surgeon testify at the trial as to the permancy of ${ case.parties[i].party.pronoun_possessive("") }injuries?
+yesno: case.parties[i].party.surgeon_expected_to_testify_permanency
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  About ${ case.parties[i].party.party_type.name.text } ${ possessify(case.parties[i], "") }surgeon:
+fields:
+  - First Name: case.parties[i].party.surgeon.name.first
+  - Middle Name: case.parties[i].party.surgeon.name.middle
+    required: False
+  - Last Name: case.parties[i].party.surgeon.name.last
+  - Suffix: case.parties[i].party.surgeon.name.suffix
+    input type: combobox
+    code: |
+      suffixes
+  - Type: case.parties[i].party.surgeon.type
+  - Gender: case.parties[i].party.surgeon.gender
+    choices:
+    - male
+    - female
+    - other
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+objects:
+  - case.parties[i].party.surgeon: SCIndividual
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  ${ case.doc_header() }
+
+subquestion: |
+  ${ case.parties[i].party.party_type.name.text } ${ case.parties[i].party.possessive('') }business info:
+fields:
+  - Active or Inactive: case.parties[i].party.business_status
+    choices:
+      - Active
+      - Inactive
+  - Authorized to conduct business in OR as a: case.parties[i].party.orauthorized
+    required: False
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  ${ case.parties[i].party.party_type.name.text} ${ case.parties[i].party.possessive('') }business info:
+fields:
+  - Business Entity Type: case.parties[i].party.business_entity.name.text
+    code: |
+      orbusinessentities
+validation code: |
+  case.parties[i].party.business_entity.db_read()
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  ${ case.parties[i].party.party_type.name.text } ${ case.parties[i].party.possessive('') }state of incorporation:
+fields:
+  - State of Incorporation: case.parties[i].party.stofinc
+    code: |
+      states_list()
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  % if case.juris.jurisdiction.name.text == 'federal':
+  ${ case.fed_head() }
+  % endif
+
+  ${ case.doc_header() }
+
+subquestion: |
+  ${ case.make_caption() }
+
+  # Is ${ case.parties[i].party.party_type.name.text } ${ case.parties[i].party } a dram shop?
+yesno: case.parties[i].party.is_dram_shop
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  Is ${ case.parties[i].party.party_type.name.text } ${ case.parties[i].party } the person who was overserved?
+yesno: case.parties[i].party.is_drunkard
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  Is ${ case.parties[i].party.party_type.name.text } ${ case.parties[i].party } the victim of the battery?
+yesno: case.parties[i].party.was_battered
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  Is ${ case.parties[i].party.party_type.name.text } ${ case.parties[i].party } the person who battered ${ self.battered() }?
+yesno: case.parties[i].party.is_batteror
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  Is ${ case.parties[i].party.party_type.name.text } ${ case.parties[i].party } the person who was hurt playing hockey?
+yesno: case.parties[i].party.was_hurt_by_hockey
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  Is ${ case.parties[i].party.party_type.name.text } ${ case.parties[i].party } the person who was attacked by ${ case.animal }?
+yesno: case.parties[i].party.was_attacked_by_animal
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  Is ${ case.parties[i].party.party_type.name.text } ${ case.parties[i].party } the owner of ${ case.animal }?
+yesno: case.parties[i].party.owned_animal
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  Is ${ case.parties[i].party.party_type.name.text } ${ case.parties[i].party } a therapeutic boarding school?
+yesno: case.parties[i].party.is_therapeutic_boarding_school
+
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  For whom is ${ case.parties[i].party } serving as guardian *ad litem*?
+fields:
+  - First: case.parties[i].party.guards.name.first
+  - Middle: case.parties[i].party.guards.name.middle
+    required: False
+  - Last: case.parties[i].party.guards.name.middle
+  - Reason for guardianship: case.parties[i].party.guards.reason
+    choices:
+    - minor
+  - Gender: case.parties[i].party.guards.gender
+    choices:
+    - male
+    - female
+    - other
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+objects:
+  - case.parties[i].party.guards: SCIndividual
+---
+question: |
+  What is race is ${ case.parties[i].party }?
+fields:
+  - no label: case.parties[i].party.race
+    choices:
+    - white
+    - black
+    - hispanic

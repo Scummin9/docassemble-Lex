@@ -1,0 +1,212 @@
+continue button field: law_review
+need: profile2.attorneys.table
+table css class: table mytable
+question: |
+  The attorneys at your firm
+subquestion: |
+  ${ profile2.attorneys.table }
+  
+  
+  ${ profile2.attorneys.add_action() }
+---
+table: profile2.attorneys.table
+rows: profile2.attorneys
+columns:
+  - "": |
+      row_item.name.full()
+  - "": |
+      row_item.bar_no 
+  - "": |
+      row_item.email 
+edit:
+  - email
+---
+continue button field: law_review3
+need: profile3.attorneys.table
+table css class: table mytable
+question: |
+  The attorneys at your firm
+subquestion: |
+  ${ profile3.attorneys.table }
+  
+  
+  ${ profile3.attorneys.add_action() }
+---
+table: profile3.attorneys.table
+rows: profile3.attorneys
+columns:
+  - "": |
+      row_item.name.full()
+  - "": |
+      row_item.bar_no 
+  - "": |
+      row_item.email 
+edit:
+  - email
+---
+mandatory: True
+code: |
+  multi_user = True
+
+  #profile.attorneys
+---
+event: profile_page
+question: |
+  Your profile
+review:
+  - label: Edit
+    field: screen['user_name']
+    button: |
+      #### Name
+      % if defined('profile2.user.name.first'):
+      ${ profile2.user }
+      % else:
+      <span class="text-muted">Your name has not been defined.</span>
+      % endif
+  - label: Edit
+    field: law_review
+    button: |
+      #### Attorneys
+
+      % if defined('profile2.attorneys'):
+      ${ profile2.attorneys }
+      % else:
+      <span class="text-muted">You have not yet added any attorneys to your firm.</span>
+      % endif
+  - label: Edit
+    fields: screen['firm_name']
+    button: |
+      #### Firm Name
+
+      % if defined('profile2.firm.name.text'):
+      ${ profile2.firm.name.text }.
+      % else:
+      <span class="text-muted">You have not added your firm yet.</span>
+      % endif
+skip undefined: False
+---
+question: |
+  Your Info
+fields:
+  - First name: profile2.user.name.first
+  - Middle name: profile2.user.name.middle
+    required: False
+  - Last name: profile2.user.name.last
+  - Title: profile2.user.title
+    datatype: combobox
+    choices: 
+    - Attorney
+    - Paralegal
+    - Legal Assistant
+    - Secratary
+  - Email: profile2.user.email
+  - Direct Phone: profile2.user.phone
+  - Direct Fax: profile2.user.fax
+continue button field: screen['user_name']
+---
+question: |
+  Your Firm
+fields:
+  - Firm Name: profile2.firm.name.text
+    address autocomplete:
+      types:
+        - establishment
+      fields:
+        - name
+        - address_components
+  - Address: profile2.firm.address.address
+    address autocomplete: True
+  - Suite: profile2.firm.address.subpremise
+    required: False
+  - City: profile2.firm.address.city
+  - State: profile2.firm.address.state
+  - Zip: profile2.firm.address.zip
+continue button field: screen['firm_name']
+---
+question: |
+  Your Firm
+fields:
+  - Firm Name: profile3.firm.name.text
+  - Address: profile3.firm.address.address
+    address autocomplete: True
+  - Suite: profile3.firm.address.subpremise
+    required: False
+  - City: profile3.firm.address.city
+  - State: profile3.firm.address.state
+  - Zip: profile3.firm.address.zip
+continue button field: firm_name3
+validation code: |
+  profile3.firm.db_save()
+---
+depends on:
+  - profile3.firm.name.text
+code: |
+  profile3.firm.name.text = profile3.firm.name.text.strip()
+---
+question: |
+  Besides ${ profile3.attorneys }, are there any others at your firm?
+yesno: profile3.attorneys.there_is_another
+---
+question: |
+  Attorney to Add to ${ profile3.firm }:
+fields:
+  - First name: profile3.attorneys[i].name.first
+  - Middle name: profile3.attorneys[i].name.middle
+    required: False
+  - Last name: profile3.attorneys[i].name.last
+  - Bar No.: profile3.attorneys[i].bar_no
+  - Email: profile3.attorneys[i].email
+#continue button field: attorneys
+#list collect: True
+---
+event: profile3_page
+question: |
+  Your profile
+review:
+  - label: Edit
+    field: law_review3
+    button: |
+      #### Attorneys
+
+      % if defined('profile3.attorneys'):
+      ${ profile3.attorneys }
+      % else:
+      <span class="text-muted">You have not yet added any attorneys to your firm.</span>
+      % endif
+  - label: Edit
+    fields: firm_name3
+    button: |
+      #### Firm Name
+
+      % if defined('profile3.firm.name.text'):
+      ${ profile3.firm.name.text }.
+      % else:
+      <span class="text-muted">You have not added your firm yet.</span>
+      % endif
+skip undefined: False
+---
+question: |
+  Besides ${ profile2.attorneys }, are there any others at your firm?
+yesno: profile2.attorneys.there_is_another
+---
+question: |
+  Attorney to Add to Your Firm
+fields:
+  - First name: profile2.attorneys[i].name.first
+  - Middle name: profile2.attorneys[i].name.middle
+    required: False
+  - Last name: profile2.attorneys[i].name.last
+  - Bar No.: profile2.attorneys[i].bar_no
+  - Email: profile2.attorneys[i].email
+#continue button field: attorneys
+#list collect: True
+---
+objects:
+  - profile2: DAGlobal.using(key='profile2')
+  - profile2.user: SCIndividual
+  - profile2.attorneys: DAList.using(object_type=SCIndividual, there_are_any=True)
+  - profile2.firm: SCPerson
+  - profile3: DAGlobal.using(key='profile3')
+  - profile3.attorneys: SCLawyerList.using(there_are_any=True)
+  - profile3.firm: Lawfirm
+---

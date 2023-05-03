@@ -1,0 +1,28 @@
+---
+code: |
+  import numpy as np
+  import numpy_financial as npf
+  annual = np.array((0.09, 0.08, 0.07, 0.06, 0.05, 0.04, 0.03, 0.02, 0.01))/12
+  pv = npf.pv(annual, years, 0, fv=futv)
+---
+question: |
+  How many years from the date payments will begin until the future value should have been realized?
+fields: 
+  - no label: years
+    datatype: integer
+---
+mandatory: True
+question: |
+  Here is the value today of ${ currency(futv) } ${ years } years from now.
+subquestion: |
+  % for i in range(len(pv)):  
+  
+  * **${ currency(pv[i]*-1) }**, assuming **${ i + 1 }%** annual interest rate, compounded monthly.
+  
+  % endfor  
+---
+question: |
+  What is the future value?
+fields:
+  - no label: futv
+    datatype: currency

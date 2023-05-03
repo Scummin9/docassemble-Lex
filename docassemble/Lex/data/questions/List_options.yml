@@ -1,0 +1,11 @@
+include: 
+  - Lists.yml
+---
+mandatory: True
+question: |
+  ${ picklist_options }
+---
+code: | 
+  picklist_options = []
+  for item in party_types:
+    picklist_options.append({"option": item})

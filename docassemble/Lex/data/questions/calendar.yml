@@ -1,0 +1,224 @@
+---
+question: |
+  Is this an ORS 20.080 demand?
+yesno: case.demand_is_20_080
+---
+question: |
+  What date was the Demand sent?
+fields:
+  - Date: case.demand_sent
+    datatype: date
+    default: current_datetime()
+---
+question: |
+  What date was the Offer Received?
+fields:
+  - Date: case.offer_received
+    datatype: date
+    default: current_datetime()
+---
+question: |
+  How many days to respond?
+fields:
+  - Date: case.days_to_respond
+    datatype: integer
+---
+question: |
+  What date was the SDT for records sent to OC?
+fields:
+  - Date: case.sdt_for_records_notice
+    datatype: date
+    default: current_datetime()
+---
+objects:
+  - case.demand_response: Thing
+  - case.sdt_for_records: Thing
+  - case.sdt_for_records_response: Thing
+
+  - case.offer_response: Thing
+  - case.rfp_response: Thing
+  - case.check_on_service: Thing
+  - case.notice_intent_to_take_default: Thing
+  - case.file_motion_for_default_order: Thing
+  - case.send_first_rfp: Thing
+  - case.rfp_received: Thing
+  - case.oc_rfp_response: Thing
+  - user: Person
+  - attendees: DAList.using(object_type=Person, there_are_any=True, auto_gather=False)
+  - casename: Person
+---
+code: |
+  attendees.clear()
+  attendees[0].name.text="Scott M Cumming"
+  attendees[0].email="scott@scottcumming.com"
+  attendees.there_is_another=False
+  attendees.gathered = True
+---
+question: |
+  What case are you calendaring?
+fields:
+  - Name: casename.name.text
+    datatype: combobox
+    code: |
+      Case.all_case_names()
+---
+code: |
+ user.name.text = "Scott M. Cumming"
+ user.email = "scott@scottcumming.com"
+ user_defined=True
+---
+template: email_template
+subject: |
+  ${ event.title }
+content: |
+  You are invited to ${ event.title } \
+  % if event.location:
+  at ${ event.location } \
+  % endif
+  from \
+  % if event.begin_date == event.end_date:
+  ${ format_time(event.begin_time, 'hh:mm a') } to \
+  ${ format_time(event.end_time, 'hh:mm a') } \
+  on ${ event.begin_date }.
+  % else:
+  ${ format_time(event.begin_time, 'hh:mm a') } \
+  on ${ event.begin_date } to \
+  ${ format_time(event.end_time, 'hh:mm a') } \
+  on ${ event.end_date }.
+  % endif
+  % if event.description:
+
+  ${ event.description }
+  % endif
+---
+question: |
+  What date was the Summons and Complaint sent to the process server?
+fields:
+  - Date: case.out_for_service
+    datatype: date
+    default: current_datetime()
+---
+question: |
+  What date was the Summons and Complaint served?
+fields:
+  - Date: case.service
+    datatype: date
+    default: current_datetime()
+---
+question: | 
+  When did you receive the RFP? 
+fields:
+  - Date: case.rfp_received
+    datatype: date
+    default: current_datetime()
+---
+question: | 
+  When did you send the RFP? 
+fields:
+  - Date: case.rfp_sent
+    datatype: date
+    default: current_datetime()
+    
+---
+question: |
+  What event occured?
+fields:
+  - Event: what_happened
+    choices:
+    - Sent out for service
+    - Service
+    - Notice of Defect
+    - Received RFP
+    - Sent RFP
+    - Settlement Demand Sent
+    - Settlement Offer Received
+    - SDT for Records
+---
+code: |
+  events = []
+  events.clear()
+  if what_happened == "Sent out for service":
+    case.check_on_service.begin_date = get_next_business_day(case.out_for_service.plus(days=7))
+    case.check_on_service.title = str("Confirm Service - " + casename.name.text)
+    case.check_on_service.description = ""
+    events.append(case.check_on_service)
+    case.notice_intent_to_take_default.begin_date = get_next_business_day(case.check_on_service.begin_date.plus(days=30))
+    case.notice_intent_to_take_default.title = str("Send Notice of Intent to Take Default to OC - " + casename.name.text)
+    case.notice_intent_to_take_default.description = "Doesn’t matter if they send an ORCP 69 letter."
+    events.append(case.notice_intent_to_take_default)
+    case.file_motion_for_default_order.begin_date = get_next_business_day(case.notice_intent_to_take_default.begin_date.plus(days=30))
+    case.file_motion_for_default_order.title = str("File Motion for Order for Default - " + casename.name.text)
+    case.file_motion_for_default_order.description = ""
+    events.append(case.file_motion_for_default_order)
+    
+    
+  elif what_happened == "SDT for Records":
+    case.sdt_for_records.begin_date = get_next_business_day(case.sdt_for_records_notice.plus(days=10))
+    case.sdt_for_records.title = str("Serve SDT for Records - " + casename.name.text)
+    case.sdt_for_records.description = ""
+    events.append(case.sdt_for_records)
+    case.sdt_for_records_response.begin_date = get_next_business_day(case.sdt_for_records_notice.plus(days=27))
+    case.sdt_for_records_response.title = str("SDT for Records Due - " + casename.name.text)
+    case.sdt_for_records_response.description = ""
+    events.append(case.sdt_for_records_response)
+    
+    
+  elif what_happened == "Service":
+    case.send_first_rfp.begin_date = get_next_business_day(case.service.plus(days=15))
+    case.send_first_rfp.title = str("Send First RFP to OC - " + casename.name.text)
+    case.send_first_rfp.description = ""
+    events.append(case.send_first_rfp)
+    
+  elif what_happened == "Received RFP":
+    case.rfp_response.begin_date = get_next_business_day(case.rfp_received.plus(days=30))
+    case.rfp_response.title = str("Respond to RFP - " + casename.name.text)
+    case.rfp_response.description = ""
+    events.append(case.rfp_response)
+    
+  elif what_happened == "Sent RFP":
+    case.oc_rfp_response.begin_date = get_next_business_day(case.rfp_sent.plus(days=33))
+    case.oc_rfp_response.title = str("RFP Response Due from OC - " + casename.name.text)
+    case.oc_rfp_response.description = ""
+    events.append(case.oc_rfp_response)
+    
+  elif what_happened == "Settlement Demand Sent":
+    if case.demand_is_20_080:
+      case.demand_response.begin_date = get_next_business_day(case.demand_sent.plus(days=30))
+    else:
+      case.demand_response.begin_date = get_next_business_day(case.demand_sent.plus(days=case.days_to_respond))
+    case.rfp_response.title = str("Response to Demand Due from OC - " + casename.name.text)
+    case.demand_response.description = ""
+    events.append(case.demand_response)
+    
+  elif what_happened == "Settlement Offer Received":
+    case.offer_response.begin_date = get_next_business_day(case.offer_received.plus(days=case.days_to_respond))
+    case.offer_response.title = str("Respond to Offer - " + casename.name.text)
+    case.offer_response.description = ""
+    events.append(case.offer_response)
+    
+  events_defined=True
+---
+modules: 
+  - .business_days
+---
+code: |
+  ics_files = []
+  ics_files.clear()
+  for event in events:
+    ics_files.append(make_event(title=event.title, description=event.description, begin_date=event.begin_date, end_date=event.begin_date, organizer=user, attendees=attendees))
+---
+code: |
+  email_sent = send_email(to=[user], reply_to = user, subject=casename.name.text, template=None, attachments=ics_files)
+---
+event: invites_sent
+prevent going back: True
+question: |
+  The invitation was sent.
+---
+code: |
+  user_defined
+  events_defined
+  attendees.gather()
+  email_sent
+  invites_sent
+  calendar_default_notices=True

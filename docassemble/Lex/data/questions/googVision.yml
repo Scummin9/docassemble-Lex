@@ -1,0 +1,68 @@
+modules:
+  - .gvision
+---
+objects:
+  - captions: DAStaticFile.using(filename='not_cap.pdf', alt_text='')
+  - not_captions: DAStaticFile.using(filename='not_cap.pdf', alt_text='')
+  - the_captions: DAFile
+  - the_not_captions: DAFile
+---
+event: final_screen
+question: |
+  % for final_time in caps:
+  #Guasian Blur ${ final_time[5] }; MORPH_RECT ${ final_time[6] }; iterations ${ final_time[7] }
+  ${ final_time[1] }  
+  
+  
+  ${ final_time[2] }  
+  
+  
+  * cv2.CONTOURS_MATCH_I1 = ${ final_time[0] }  
+  
+  
+  * cv2.CONTOURS_MATCH_I2 = ${ final_time[3] }  
+  
+  
+  * cv2.CONTOURS_MATCH_I3 = ${ final_time[4] }  
+  % endfor
+---
+mandatory: True
+code: |
+  caps = []
+  the_captions.initialize(extension="pdf")
+  the_captions.copy_into(captions)
+  the_captions.created  = True
+  the_not_captions.initialize(extension="pdf")
+  the_not_captions.copy_into(not_captions)
+  the_not_captions.created  = True
+  for caption_page in range(int(the_captions.num_pages())):
+    for not_caption_page in range(int(the_not_captions.num_pages())):
+      caps.append(contour_this(the_captions.page_path(caption_page+1, 'page'), the_not_captions.page_path(not_caption_page+1, 'page')))
+  final_screen
+---
+code: |
+  if not ocr_task.ready():
+    waiting_screen
+  else:
+    ocr_text = ocr_task.get()
+  perform_ocr = True
+---
+code: |
+  ocr_task = ocr_file_in_background(pdf, use_google=True)
+---
+event: waiting_screen
+question: Please wait . . .
+reload: True
+---
+question: |
+  Upload PDF.
+fields: 
+  - Image: an_image
+    datatype: file
+---
+question: |
+  Upload PDF.
+fields: 
+  - Image: an_image2
+    datatype: file
+---

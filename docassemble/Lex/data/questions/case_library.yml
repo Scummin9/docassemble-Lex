@@ -1,0 +1,36 @@
+mandatory: True
+code: |
+  manage_libraries
+---
+modules:
+  - .cases36
+---
+objects:
+  - library: SCLawyerList
+---
+question: |
+  Lawyer information
+fields:
+  - First Name: library.name.first
+  - Middle: library.name.middle
+  - Last: library.name.last
+  - Lawyer email: library.email
+continue button field: edit_library    
+---
+event: manage_libraries
+question: |
+  All libraries
+subquestion: |
+  % for lib in library.list_all():
+  * [${ lib[1] }](${ url_ask({"action": "action_edit_library", "arguments": {"id": lib[0]}}, "edit_library", {"recompute": ["action_save_library"]})})
+  % endfor
+---
+code: |
+  library.id = action_argument("id")
+  library.db_read()
+  #edit_library
+  action_edit_library=True
+---
+code: |  
+  library.db_save()  
+  action_save_library = True

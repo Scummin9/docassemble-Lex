@@ -1,0 +1,781 @@
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+---
+question: |
+  Where did Plaintiff fall?
+fields:
+  - Location: case.fell_here
+    choices:
+    - sidewalk
+    - parking lot
+    - inside the building
+    - the entryway to the building
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  % for serv in case.certificate_of_service_list():
+  * ${ serv[0] }  
+  
+  
+  * ${ serv[1] }  
+  
+  
+  
+  * ${ serv[2] }  
+  % endfor
+ 
+  Upload the discovery request in pdf form:
+fields:
+  - ${ case.destination_base() }: d_rfp
+    datatype: file
+validation code: |
+  try:
+    for item in d_rfp:
+      assert item.mimetype == 'application/pdf'
+    d_rfp.fix_up()
+  except:
+    raise validation_error("Sorry, that is not a valid PDF file")
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+code: |
+  if case.rrfps.request_ordinal != 'First':
+    case.rrfps.prior_requests_total = int(case.rrfps.prior_requests) + 1
+  else:
+    case.rrfps.prior_requests_total = 1
+---
+code: |
+  if case.rrogs.request_ordinal != 'First':
+    case.rrogs.prior_requests_total = int(case.rrogs.prior_requests) + 1
+  else:
+    case.rrogs.prior_requests_total = 1
+---
+code: |
+  if case.request_ordinal != 'First':
+    case.prior_requests_total = int(case.prior_requests) + 1
+  else:
+    case.prior_requests_total = 1
+---
+code: |
+  if case.rrfas.request_ordinal != 'First':
+    case.rrfas.prior_requests_total = int(case.rrfas.prior_requests) + 1
+  else:
+    case.rrfas.prior_requests_total = 1
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+event: wait
+question: |
+  Relax and let the machine work its magic. This screen will reload when the requests are ready.
+reload: 10
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+
+  % if case.juris.jurisdiction.name.text == 'federal':  
+  ${ case.fed_head() }  
+  % endif   
+    
+  
+  
+  
+  
+subquestion: |
+  
+  
+  ${ case.make_caption() }  
+
+  
+  % if not case.draft == 'Trial Memo':  
+  
+  
+  <p style='text-align: justify;'> ${ case.dear_recipients() }  </p> 
+
+
+  <p style='text-align: justify;'> ${ case.response_intro() }  </p> 
+    
+    
+  % endif
+
+  <p style='text-align: justify;'> <strong>REQUEST FOR ADMISSION NO. ${ int(i)+int(case.rrfas.prior_requests_total) }:</strong>${ case.rrfas[i] }  </p> 
+fields:
+  - RESPONSE: case.rrfas[i].response
+    input type: combobox
+    default: denies
+    choices: 
+    - admits
+    - denies
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+
+  % if case.juris.jurisdiction.name.text == 'federal':  
+  ${ case.fed_head() }  
+  % endif   
+  
+
+  
+subquestion: |
+  
+  
+  ${ case.make_caption() }  
+
+  
+  % if not case.draft == 'Trial Memo':  
+  
+  
+  <p style='text-align: justify;'> ${ case.dear_recipients() }  </p> 
+
+
+  <p style='text-align: justify;'> ${ case.response_intro() }  </p> 
+    
+    
+  % endif
+
+  <p style='text-align: justify;'> <strong>REQUEST FOR ADMISSION NO. ${ int(i)+int(case.rrfas.prior_requests_total)  }:</strong>${ case.rrfas[i] }  </p> 
+fields:
+  - Undefined and subjective term or phrase: case.rrfas[i].undefined_subjective
+    datatype: yesno
+  - Term or phrase: case.rrfas[i].bad_term
+    show if:
+      variable: case.rrfas[i].undefined_subjective
+      is: True
+  - Reasonable inquiry has been made, and the information known or readily obtainable by Plaintiff is insufficient to enable Plaintiff to admit or deny this case.rrfas: case.rrfas[i].reasonable_inquiry
+    datatype: yesno
+  - Plaintiff objects to this case.rrfas as ambiguous, unclear, and confusing, precluding Plaintiff from sufficiently being able to admit or deny this case.rrfas: case.rrfas[i].vauge_ambiguous
+    datatype: yesno
+  - Plaintiff objects to this case.rrfas as calling for an undiscoverable expert opinion: case.rrfas[i].expert
+    datatype: yesno
+  - Plaintiff objects to this case.rrfas as calling for information protected under the attorney client privilege and/or attorney work product doctrine: case.rrfas[i].attorney_client
+    datatype: yesno
+    
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  ${ case.doc_header() }
+  
+subquestion: |
+  ${ case.make_caption() }
+
+    % if not case.draft == 'Trial Memo':  
+  
+  
+  <p style='text-align: justify;'> ${ case.dear_recipients() }  </p> 
+
+
+  <p style='text-align: justify;'> ${ case.response_intro() }  </p> 
+    
+    
+  % endif
+
+  <p style='text-align: justify;'> <strong>REQUEST FOR PRODUCTION NO. ${ int(i)+int(case.rrfps.prior_requests_total)  }:</strong> ${ case.rrfps[i] }  </p> 
+
+fields:
+  - overly broad and unduly burdensome: case.rrfps[i].overly_broad
+    datatype: yesno
+
+  - overbroad as to time: case.rrfps[i].overbroad_time
+    datatype: yesno
+
+  - not reasonably calculated to lead to the discovery of admissible evidence: case.rrfps[i].not_reasonably_calculated 
+    datatype: yesno
+
+  - attorney client privilege and/or attorney work product doctrine: case.rrfps[i].attorney_client
+    datatype: yesno
+
+  - not limited to the same or similar body parts: case.rrfps[i].same_bodypart
+    datatype: yesno
+    note: |
+      ${ prog_disclose(same_bodypart_cite) }  
+      
+      
+  - vague and/or ambiguous: case.rrfps[i].vauge_ambiguous
+    datatype: yesno
+
+  - public record: case.rrfps[i].public_record
+    datatype: yesno
+    note: |
+      ${ prog_disclose(public_record_cite) }  
+
+      
+  - Defendant already possesses: case.rrfps[i].defendant_possesses
+    datatype: yesno
+    note: |
+      ${ prog_disclose(defendant_possesses_cite) }  
+
+      
+  - impermissible interrogatory: case.rrfps[i].interrogatory
+    datatype: yesno
+
+  - impermissible expert discovery: case.rrfps[i].expert
+    datatype: yesno
+    note: |
+      ${ prog_disclose(expert_cite) }  
+  - highly confidential business documents: case.rrfps[i].biz_docs 
+    datatype: yesno
+  - Action: case.rrfps[i].responsive
+    datatype: combobox
+    default: 'PLACEHOLDER.'
+    choices: 
+    - documents responsive to this request are produced herewith.
+    - documents responsive to this request have been requested and will be produced upon receipt to the extent any exist and are discoverable. 
+    - documents responsive to this request are being researched. If any such discoverable documents are found, they will be produced once a suitable protective order is entered in this case.
+    - no such discoverable documents are known to exist.
+    - no such discoverable documents are known to exist apart from those produced elsewhere with this response. 
+    - see response to RFP No. 
+    - PLACEHOLDER.
+  - See response to RFP No. . . .: case.rrfps[i].see_rfp
+    datatype: integer
+    show if:
+      variable: case.rrfps[i].responsive
+      is: 'see response to RFP No. '
+  - Additional Response: case.rrfps[i].text_response
+    datatype: area
+    rows: 10
+    required: False
+---
+question: |
+
+  % if case.juris.jurisdiction.name.text == 'federal':  
+  ${ case.fed_head() }  
+  % endif   
+    
+  
+  
+  
+  
+subquestion: |
+  
+  
+  ${ case.make_caption() }  
+
+  
+  % if not case.draft == 'Trial Memo':  
+  
+  
+  <p style='text-align: justify;'> ${ case.dear_recipients() }  </p> 
+
+
+  <p style='text-align: justify;'> ${ case.response_intro() }  </p> 
+    
+    
+  % endif
+
+  <p style='text-align: justify;'> <strong>REQUEST FOR PRODUCTION NO. ${ int(i)+int(case.rrfps.prior_requests_total)  }:</strong> ${ case.rrfps[i] }  </p> 
+fields:
+  - Responsive Documents: case.rrfps.docs
+    datatype: files
+---
+sets: rrfpdocs
+code: |
+  if len(case.rrfpdocsraw):
+    rrfpdocs = pdf_concatenate(case.rrfps.docs)
+    rrfpdocs.bates_number(prefix='TL', filename='RRFP Docs.pdf', digits=5, area='BOTTOM_LEFT')
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+template: expert_cite
+
+subject: | 
+  
+content: |
+      The ORCPs do not permit pretrial discovery of expert witnesses—neither the witness' identity nor the substance of her testimony. *Stevens v. Czerniak*, 336 Or 392, 404  (2004); *see also State v. Riddle*, 330 Or 471, 477, 8 P3d 980 (2000) (holding that a retained expert is a “lawyer’s representative” for purposes of OEC 503(2)). Confidential communications between a “lawyer’s representative” and the lawyer or client are protected under OEC 503(2), which extends the lawyer-client privilege to communications between the client or lawyer and the “representative of the lawyer.” OEC 503(1)(f) (ORS 40.225(1)(f)) (defining representative of the lawyer as “one employed to assist the lawyer in the rendition of professional legal services, but does not include a physician making a physical or mental examination under ORCP 44”); *see also Brink v. Multnomah Cnty.*, 224 Or 507, 516–17 (1960) (holding that communications between a lawyer and a client’s representative are protected by the lawyer-client privilege). The lawyer-client privilege extends to correspondence between the expert and the lawyer prepared before the expert was asked to testify. *Dyer v. R.E. Christiansen Trucking*, 118 Or App 320, 329 (1993).  
+        
+        
+      But the expert witness privelege only applies to experts employed in anticipation of litigation. *See Riddle*, 330 Or at 477. Further, when an expert witness is also a fact witness and “develops facts or opinions as a participant in the events at issue,” the witness “may be questioned about those events as an ordinary witness.”  *Ransom v. Radiology Specialists of Nw.*, 363 Or 552, 566–67 (2018).  
+        
+         Federal courts do provide for expert disclosure under FRCP 26(b)(4), but there are limits. Unless the parties stipulate or the court orders otherwise, each expert who is expected to testify must provide a signed, written report containing (i) a complete statement of all opinions the witness will express and the basis and reasons for them; (ii) the facts or data considered by the witness in forming them; (iii) any exhibits that will be used to summarize or support them; (iv) the witness’s qualifications, including a list of all publications authored in the previous 10 years; (v) a list of all other cases in which, during the previous 4 years, the witness testified as an expert at trial or by deposition; and (vi) a statement of the compensation to be paid for the study and testimony in the case. FRCP 26(a)(2)(B). If the parties or the court do not establish a schedule for expert disclosure, the disclosure must occur at least 90 days before trial, with 30 days thereafter to rebut evidence submitted by the opposing party. FRCP 26(a)(2)(D). Generally, however, the time for disclosure of experts—and discovery regarding experts generally—is set at a pretrial conference. 
+
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+template: defendant_possesses_cite
+
+subject: | 
+  
+content: |
+      *E.g.*, *Bleeker v. Standard Fire Ins. Co.*, 130 F Supp2d 726, 738-39 (EDNC 2000) ("Discovery is not required when documents are in the possession of or are readily obtainable by the party seeking a motion to compel.") (citing *Dushkin Publishing Group, Inc. v. Kinko's Service Corp.*, 136 FRD 334, 335 (DDC.1991); *Securities and Exchange Commission v. Samuel H. Sloan & Co.*, 369 F Supp 994, 995 (S.D.N.Y.1973)).
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+template: same_bodypart_cite
+
+subject: | 
+  
+content: |
+
+    ORCP 44C authorizes discovery of prior medical records “of any examinations relating to injuries for which recovery is sought.” Generally, records relating to the “same body part or area” have been discoverable. Records sought must actually relate to the presently claimed injuries. 
+        
+        
+    In general, pleading garden variety pain & suffering expressed in terms of emotional and mental stress does not  open the door to counseling and psychological records without the allegation of a specific psychological condition or injury. In some cases, courts have granted discovery based on the particular facts of a claim which distinguish it from what may be considered a “garden variety” claim for noneconomic damages.
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+template: public_record_cite
+
+subject: | 
+  
+content: |
+
+      A party may refuse to produce documents by claiming that the documents can be procured as easily by the case.rrfpsing party from another source under the justification that it is an undue burden to produce the documents due to the ease of access from another source. *See, e.g.*, *Bleeker v. Standard Fire Ins. Co.*, 130 F Supp2d 726, 738-39 (E.D.N.C. 2000); *Sec. & Exch. Comm'n v. Samuel H. Sloan & Co.*, 369 F Supp 994, 995 (SDNY 1973) ("It is well established that discovery need not be required of documents of public record which are equally accessible to all parties." (citing *Komow v. Simplex Cloth Cutting Machine Co., Inc.*, 109 Misc. 358, 179 N.Y.S. 682 (1919)).
+
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+event: request_error
+question: |
+  It looks like the machine didn't pick up any RFPs in the document you uploaded. If you think this was an error, press the "**Back**" button in the top left corner of your screen to give it another try. To enter the RFPs manually, press "**Continue**" below.
+continue button field: case.rrfps.there_are_any
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  Type, edit, or copy-paste the ${ ordinal(i) } RFP here:
+fields:
+  - Name: case.rrfps[i].name.text
+    input type: area
+    rows: 10
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  Are there any more RFPs?
+yesno: case.rrfps.there_is_another
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+
+
+  % if case.juris.jurisdiction.name.text == 'federal':  
+  ${ case.fed_head() }  
+  % endif   
+    
+  
+  
+
+subquestion: |
+
+
+  **Should this ${ case.destination } be addressed to ${ case.parties[i].party }?**
+
+yesno: case.parties[i].party.is_recipient
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+code: |
+  if not ocr_task.ready():
+    waiting_screen
+  else:
+    ocr_text = ocr_task.get()
+  perform_ocr = True
+---
+code: |
+  ocr_task = ocr_file_in_background(pdf, use_google=True)
+---
+event: waiting_screen
+question: Please wait . . .
+reload: True
+---
+code: |
+    log("quaero_pdf . . . . 1")
+    d_rfp
+    log("quaero_pdf . . . . 2")
+    dilated_alldocfiles = DAFileList("dilated_alldocfiles", auto_gather=False)
+    log("quaero_pdf . . . . 3")
+    dilated_alldocfiles.clear()
+    log("quaero_pdf . . . . 4")
+    for index in range(int(d_rfp[0].num_pages())):
+      dilated_alldocfiles.appendObject(DAFile)
+      dilated_alldocfiles[-1].initialize(filename="{}.{}".format(str(index +1), "dilated_boxedfile.png"))
+    log("quaero_pdf . . . . 5")
+    dilated_alldocfiles.gathered = True
+    pages = []
+    for page in range(int(d_rfp[0].num_pages())):
+      pages.append(d_rfp[0].page_path(page+1, 'page'))
+      pages.append(dilated_alldocfiles[page].path())
+    log("quaero_pdf . . . . 6")
+    #import time
+    #start_time = time.time()
+    output3, return_code = run_python_module('tfiles.py', arguments=pages)
+    log("quaero_pdf . . . . 7")
+    #duration = time.time() - start_time
+    #final_time = str(f"Duration {duration} seconds")
+    for index in range(int(d_rfp[0].num_pages())):
+      log("quaero_pdf . . . . 7a")
+      dilated_alldocfiles[index].commit()
+    log("quaero_pdf . . . . 7b")
+    pdf = pdf_concatenate(dilated_alldocfiles)
+    log("quaero_pdf . . . . 8")
+    quaero_pdf = True
+---
+code: |
+  case.unsorted_requests.clear()
+  for rex in rss:
+    if rex[1] ==3:
+        case.unsorted_requests.appendObject(SCUnsortedRequests)
+        case.unsorted_requests[-1].name.text = single_paragraph(rex[0])
+        if "document" in rex[0].lower():
+          case.unsorted_requests[-1].default = "RFP"
+        elif "admit" in rex[0].lower():
+          case.unsorted_requests[-1].default = "RFA"
+        elif "produce" in rex[0].lower():
+          case.unsorted_requests[-1].default = "RFP"
+        else:
+          case.unsorted_requests[-1].default = "RFP"
+  sort_unsorted = True
+---
+code: |
+    case.rrfps.clear()
+    case.rrogs.clear()
+    case.rrfas.clear()
+    for request in case.unsorted_requests:
+      if request.sorted == "RFP":
+        case.rrfps.appendObject(SCRequests)
+        case.rrfps[-1].name.text = single_paragraph(request.name.text)
+      elif request.sorted == "RFA":
+        case.rrfas.appendObject(SCRequests)
+        case.rrfas[-1].name.text = single_paragraph(request.name.text)
+      elif request.sorted == "ROG":
+        case.rrogs.appendObject(SCRequests)
+        case.rrogs[-1].name.text = single_paragraph(request.name.text)
+
+    for rex in rss:
+      if rex[1] ==0:
+        case.rrfps.appendObject(SCRequests)
+        case.rrfps[-1].name.text = single_paragraph(rex[0])
+      elif rex[1]==1:
+        case.rrogs.appendObject(SCRequests)
+        case.rrogs[-1].name.text = single_paragraph(rex[0])
+      elif rex[1]==2:
+        case.rrfas.appendObject(SCRequests)
+        case.rrfas[-1].name.text = single_paragraph(rex[0])
+    sort_sorted = True
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+only sets: 
+  - case.rrfps.prepopulated
+  - case.rrogs.prepopulated
+  - case.rrfas.prepopulated
+code: |
+    rss = quaero_rrfps(ocr_text)
+    rexgetter
+    
+    if any(rex[1]==3 for rex in rss):
+      sort_unsorted
+    case.unsorted_requests.there_is_another = False
+    case.unsorted_requests.gathered=True 
+    sort_sorted
+    if not case.rrfps and not case.rrogs and not case.rrfas:
+      success_sending_email = send_email(to=[scummin9@gmail.com], template=None, attachments=[d_rfp])
+
+    if case.rrfps.number_gathered():
+      case.rrfps.there_is_another = False
+      case.rrfps.gathered=True
+    case.rrfps.prepopulated=True
+    if case.rrogs.number_gathered():
+      case.rrogs.there_is_another = False
+      case.rrogs.gathered=True
+    case.rrogs.prepopulated=True
+    if case.rrfas.number_gathered():
+      case.rrfas.there_is_another = False
+      case.rrfas.gathered=True
+    case.rrfas.prepopulated=True
+---
+question: |
+   What kind of discovery request is this? 
+subquestion: |
+   ${ case.unsorted_requests[i].name.text }
+fields:
+  - Type: case.unsorted_requests[i].sorted
+    default: |
+      ${ case.unsorted_requests[i].default }
+    choices:
+    - RFP
+    - RFA
+    - ROG
+    - None
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+only sets: rexgetter
+code: |
+    if any(rex[1]==0 or rex[1]==3 for rex in rss):
+      case.rrfps.there_are_any=True
+    else:
+      case.rrfps.there_are_any=False
+      case.rrfps.prepopulated=True
+    if any(rex[1]==1 for rex in rss):
+      case.rrogs.there_are_any=True
+    else:
+      case.rrogs.there_are_any=False
+      case.rrogs.prepopulated=True
+    if any(rex[1]==2 for rex in rss):
+      case.rrfas.there_are_any=True
+    else:
+      case.rrfas.there_are_any=False
+      case.rrfas.prepopulated=True
+    rexgetter = True
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+objects:
+  - case.rrfps: SCList.using(object_type=SCRequests)
+  - case.rrfas: SCList.using(object_type=SCRequests)
+  - case.unsorted_requests: SCUnsortedRequestsList
+  - my_documents: DAList.using(auto_gather=False)
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+code: |
+  my_documents.clear()
+  my_documents.append(the_alldocx)
+  my_documents.there_is_another = False
+  my_documents.gathered = True
+---
+event: subpoena
+question: |
+    **This document is only a draft.***
+post: |
+  ***This document is only a draft.** The documents produced by Trial Legend are designed to help lawyers in their professional practice. Although all material is reviewed carefully before its inclusion with Trial Legend, in dealing with specific legal matters the lawyer should research original sources of authority. Although the materials included with the Trial Legend Software are a valuable starting point for drafting litigation documents, the standards of the legal profession demand that any lawyer review any documents produced by Trial Legend for accuracy and conduct independent legal research using primary legal sources. Trial Legend makes neither express nor implied warranties regarding the use of the materials included with the Trial Legend Software. Each lawyer must depend on his or her own research, knowledge of the law, and expertise in using these materials. This document is provided as a starting point for your document drafting. It is the user’s responsibility to apply law to fact and to modify this document as needed based on the facts in the case and the requirements of the applicable law. This document is offered here for a limited purpose as a practice aid, and each lawyer must depend on his or her own research and judgment in determining which objections to make and whether and how to modify this document.
+attachment code: |
+  [ provider.subpoena for provider in case.providers ]
+action buttons:
+  - label: Style
+    action: new_version
+    color: primary
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+event: summons
+question: |
+    **This document is only a draft.***
+post: |
+  ***This document is only a draft.** The documents produced by Trial Legend are designed to help lawyers in their professional practice. Although all material is reviewed carefully before its inclusion with Trial Legend, in dealing with specific legal matters the lawyer should research original sources of authority. Although the materials included with the Trial Legend Software are a valuable starting point for drafting litigation documents, the standards of the legal profession demand that any lawyer review any documents produced by Trial Legend for accuracy and conduct independent legal research using primary legal sources. Trial Legend makes neither express nor implied warranties regarding the use of the materials included with the Trial Legend Software. Each lawyer must depend on his or her own research, knowledge of the law, and expertise in using these materials. This document is provided as a starting point for your document drafting. It is the user’s responsibility to apply law to fact and to modify this document as needed based on the facts in the case and the requirements of the applicable law. This document is offered here for a limited purpose as a practice aid, and each lawyer must depend on his or her own research and judgment in determining which objections to make and whether and how to modify this document.
+attachment code: |
+  [party.party.summons for party in case.parties if party.party.party_type.name.text=='Defendant']
+action buttons:
+  - label: Style
+    action: new_version
+    color: primary
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+event: final_rrfp
+question: |
+    **This document is only a draft.***
+post: |
+  ***This document is only a draft.** The documents produced by Trial Legend are designed to help lawyers in their professional practice. Although all material is reviewed carefully before its inclusion with Trial Legend, in dealing with specific legal matters the lawyer should research original sources of authority. Although the materials included with the Trial Legend Software are a valuable starting point for drafting litigation documents, the standards of the legal profession demand that any lawyer review any documents produced by Trial Legend for accuracy and conduct independent legal research using primary legal sources. Trial Legend makes neither express nor implied warranties regarding the use of the materials included with the Trial Legend Software. Each lawyer must depend on his or her own research, knowledge of the law, and expertise in using these materials. This document is provided as a starting point for your document drafting. It is the user’s responsibility to apply law to fact and to modify this document as needed based on the facts in the case and the requirements of the applicable law. This document is offered here for a limited purpose as a practice aid, and each lawyer must depend on his or her own research and judgment in determining which objections to make and whether and how to modify this document.
+subquestion: |
+  [DOWNLOAD DRAFT],
+
+  [DOWNLOAD DRAFT]: ${ case.mydoc.url_for(temporary=True) } 
+action buttons:
+  - label: Style
+    action: new_version
+    color: primary
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+event: final_proposed_ucji
+question: |
+    **This document is only a draft.***
+post: |
+  ***This document is only a draft.** The documents produced by Trial Legend are designed to help lawyers in their professional practice. Although all material is reviewed carefully before its inclusion with Trial Legend, in dealing with specific legal matters the lawyer should research original sources of authority. Although the materials included with the Trial Legend Software are a valuable starting point for drafting litigation documents, the standards of the legal profession demand that any lawyer review any documents produced by Trial Legend for accuracy and conduct independent legal research using primary legal sources. Trial Legend makes neither express nor implied warranties regarding the use of the materials included with the Trial Legend Software. Each lawyer must depend on his or her own research, knowledge of the law, and expertise in using these materials. This document is provided as a starting point for your document drafting. It is the user’s responsibility to apply law to fact and to modify this document as needed based on the facts in the case and the requirements of the applicable law. This document is offered here for a limited purpose as a practice aid, and each lawyer must depend on his or her own research and judgment in determining which objections to make and whether and how to modify this document.
+subquestion: |
+  [DOWNLOAD DRAFT],
+
+  [DOWNLOAD DRAFT]: ${ proposed_ucji.url_for(temporary=True) } 
+action buttons:
+  - label: Style
+    action: new_version
+    color: primary
+    
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+event: motion_to_postpone
+question: |
+    **This document is only a draft.***
+post: |
+  ***This document is only a draft.** The documents produced by Trial Legend are designed to help lawyers in their professional practice. Although all material is reviewed carefully before its inclusion with Trial Legend, in dealing with specific legal matters the lawyer should research original sources of authority. Although the materials included with the Trial Legend Software are a valuable starting point for drafting litigation documents, the standards of the legal profession demand that any lawyer review any documents produced by Trial Legend for accuracy and conduct independent legal research using primary legal sources. Trial Legend makes neither express nor implied warranties regarding the use of the materials included with the Trial Legend Software. Each lawyer must depend on his or her own research, knowledge of the law, and expertise in using these materials. This document is provided as a starting point for your document drafting. It is the user’s responsibility to apply law to fact and to modify this document as needed based on the facts in the case and the requirements of the applicable law. This document is offered here for a limited purpose as a practice aid, and each lawyer must depend on his or her own research and judgment in determining which objections to make and whether and how to modify this document.
+attachment code: |
+  [ draft.postponement for draft in case.drafting if case.draft == "Motion to Postpone" ]
+action buttons:
+  - label: Style
+    action: new_version
+    color: primary
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+event: GAL_parental_consent
+question: |
+    **This document is only a draft.***
+post: |
+  ***This document is only a draft.** The documents produced by Trial Legend are designed to help lawyers in their professional practice. Although all material is reviewed carefully before its inclusion with Trial Legend, in dealing with specific legal matters the lawyer should research original sources of authority. Although the materials included with the Trial Legend Software are a valuable starting point for drafting litigation documents, the standards of the legal profession demand that any lawyer review any documents produced by Trial Legend for accuracy and conduct independent legal research using primary legal sources. Trial Legend makes neither express nor implied warranties regarding the use of the materials included with the Trial Legend Software. Each lawyer must depend on his or her own research, knowledge of the law, and expertise in using these materials. This document is provided as a starting point for your document drafting. It is the user’s responsibility to apply law to fact and to modify this document as needed based on the facts in the case and the requirements of the applicable law. This document is offered here for a limited purpose as a practice aid, and each lawyer must depend on his or her own research and judgment in determining which objections to make and whether and how to modify this document.
+attachment code: |
+  [party.GAL_parental_consent for party in case.parties if party.name.caption_type == "guardian ad litem"]
+action buttons:
+  - label: Style
+    action: new_version
+    color: primary
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+event: GAL_order
+question: |
+    **This document is only a draft.***
+post: |
+  ***This document is only a draft.** The documents produced by Trial Legend are designed to help lawyers in their professional practice. Although all material is reviewed carefully before its inclusion with Trial Legend, in dealing with specific legal matters the lawyer should research original sources of authority. Although the materials included with the Trial Legend Software are a valuable starting point for drafting litigation documents, the standards of the legal profession demand that any lawyer review any documents produced by Trial Legend for accuracy and conduct independent legal research using primary legal sources. Trial Legend makes neither express nor implied warranties regarding the use of the materials included with the Trial Legend Software. Each lawyer must depend on his or her own research, knowledge of the law, and expertise in using these materials. This document is provided as a starting point for your document drafting. It is the user’s responsibility to apply law to fact and to modify this document as needed based on the facts in the case and the requirements of the applicable law. This document is offered here for a limited purpose as a practice aid, and each lawyer must depend on his or her own research and judgment in determining which objections to make and whether and how to modify this document.
+attachment code: |
+  [party.GAL_petition for party in case.parties if party.name.caption_type == "guardian ad litem"]
+action buttons:
+  - label: Style
+    action: new_version
+    color: primary
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+event: GAL_petition
+question: |
+    **This document is only a draft.***
+post: |
+  ***This document is only a draft.** The documents produced by Trial Legend are designed to help lawyers in their professional practice. Although all material is reviewed carefully before its inclusion with Trial Legend, in dealing with specific legal matters the lawyer should research original sources of authority. Although the materials included with the Trial Legend Software are a valuable starting point for drafting litigation documents, the standards of the legal profession demand that any lawyer review any documents produced by Trial Legend for accuracy and conduct independent legal research using primary legal sources. Trial Legend makes neither express nor implied warranties regarding the use of the materials included with the Trial Legend Software. Each lawyer must depend on his or her own research, knowledge of the law, and expertise in using these materials. This document is provided as a starting point for your document drafting. It is the user’s responsibility to apply law to fact and to modify this document as needed based on the facts in the case and the requirements of the applicable law. This document is offered here for a limited purpose as a practice aid, and each lawyer must depend on his or her own research and judgment in determining which objections to make and whether and how to modify this document.
+attachment code: |
+  [party.GAL_order for party in case.parties if party.name.caption_type == "guardian ad litem"] 
+action buttons:
+  - label: Style
+    action: new_version
+    color: primary
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+event: Final_Satisfaction_of_Liens
+question: |
+    **This document is only a draft.***
+post: |
+  ***This document is only a draft.** The documents produced by Trial Legend are designed to help lawyers in their professional practice. Although all material is reviewed carefully before its inclusion with Trial Legend, in dealing with specific legal matters the lawyer should research original sources of authority. Although the materials included with the Trial Legend Software are a valuable starting point for drafting litigation documents, the standards of the legal profession demand that any lawyer review any documents produced by Trial Legend for accuracy and conduct independent legal research using primary legal sources. Trial Legend makes neither express nor implied warranties regarding the use of the materials included with the Trial Legend Software. Each lawyer must depend on his or her own research, knowledge of the law, and expertise in using these materials. This document is provided as a starting point for your document drafting. It is the user’s responsibility to apply law to fact and to modify this document as needed based on the facts in the case and the requirements of the applicable law. This document is offered here for a limited purpose as a practice aid, and each lawyer must depend on his or her own research and judgment in determining which objections to make and whether and how to modify this document.
+attachment code: |
+  [creditor.final_satisfaction_letter for creditor in case.lien_creditors] 
+action buttons:
+  - label: Style
+    action: new_version
+    color: primary
+---
+generic object: SCLienCreditor
+attachment:
+  variable name: x.final_satisfaction_letter
+  name: Payment in Full Letter - ${ x.name.full() }
+  docx template file: FinalSatisfaction.docx
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+code: |
+    case.mydoc = case.style_the_alldocx()
+depends on: style_version
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+attachment:
+  variable name: case.declaration
+  docx template file: condl_lines_2.docx
+  filename: ${ case.draft } - ${ case.name() }
+  valid formats:
+  - docx
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+attachment:
+  variable name: case.order
+  docx template file: condl_lines_2.docx
+  filename: ${ case.draft } - ${ case.name() }
+  valid formats:
+  - docx
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+attachment:
+  variable name: case.motion
+  docx template file: condl_lines_2.docx
+  filename: ${ case.draft } - ${ case.name() }
+  valid formats:
+  - docx
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+attachment:
+  variable name: proposed_ucji
+  docx template file: condl_lines_2_2.docx
+  filename: file
+  valid formats:
+  - docx
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+attachment:
+  variable name: case.the_alldocx
+  docx template file: condl_lines_2_2.docx
+  filename: file
+  valid formats:
+  - docx
+---
+generic object: Provider
+attachment:
+  variable name: x.CNBrequest
+  name: CNBrequest - ${ x.name.full() }
+  docx template file: CNB_request_1.docx
+---
+generic object: Provider
+attachment:
+  variable name: x.CNBauth
+  name: CNBauth - ${ x.name.full() }
+  docx template file: Medical_Authorization_1.docx
+---
+objects:
+  - refreshed_for: DADict
+  - case.providers: SCList.using(object_type=Provider, there_are_any=True)
+---
+question: |
+  Besides ${ case.providers }, are there any more providers?
+yesno: case.providers.there_is_another
+---
+event: CNB_Req
+question: |
+  Your documents
+attachment code: |
+  [provider.CNBauth for provider in case.providers]
+---
+event: CNB_middle 
+question: |
+  Your documents
+attachment code: |
+  [provider.CNBrequest for provider in case.providers]
+---
+code: |
+  undefine('case.the_alldocx')
+  refreshed_for[i] = True
+---
+only sets: motion
+code: |
+  case.draft = 'Motion'
+  refreshed_for[case.draft]
+  motion = case.the_alldocx
+---
+only sets: order
+code: |
+  case.draft = 'Order'
+  refreshed_for[case.draft]
+  order = case.the_alldocx
+---
+event: motion_to_postpone
+question: |
+  Your documents
+attachment code: |
+  [motion, order, declaration]
+---
+generic object: Person
+attachment:
+  variable name: x.subpoena
+  name: Subpoena - ${ x.name.full() }
+  docx template file: Subpoena_Duces_Tecum.docx
+---
+generic object: Party
+attachment:
+  variable name: x.summons
+  name: Summons - ${ x.name.full() }
+  docx template file: condl_lines_2.docx
+---
+generic object: SCList
+attachment:
+  variable name: x.postponement
+  name: ${ x } to Postpone
+  docx template file: condl_lines_2.docx
+---
+generic object: SCParty
+attachment:
+  variable name: x.GAL_order
+  name: Order Granting GAL - ${ x.guards.name.full() }
+  docx template file: condl_lines_2.docx
+---
+generic object: SCParty
+attachment:
+  variable name: x.GAL_petition
+  name: Petition for GAL - ${ x.guards.name.full() }
+  docx template file: condl_lines_2.docx
+---
+generic object: SCParty
+attachment:
+  variable name: x.GAL_parental_consent
+  name: Parental Consent to Pursue Medical Expenses - ${ x.guards.name.full() }
+  docx template file: condl_lines_2.docx

@@ -1,0 +1,295 @@
+---
+question: |
+  Upload the ROG in pdf form:
+fields:
+  - RFP: d_rrog
+    datatype: file
+validation code: |
+  try:
+    for item in d_rrog:
+      assert item.mimetype == 'application/pdf'
+    d_rrog.fix_up()
+  except:
+    raise validation_error("Sorry, that is not a valid PDF file")
+---
+event: wait_rog
+question: |
+  Let the Legend work its magic. It'll bring you the results as soon as they come. For now, soak up some knowledge to help keep you sharp:  
+  
+  
+  > ${ random.choice(interrogatory_rulestatements) }
+reload: 35
+---
+question: |
+  % if case.juris.jurisdiction.name.text == 'federal':  
+  ${ case.fed_head() }  
+  % endif   
+    
+  
+  ${ case.doc_header() }  
+  
+  
+subquestion: |
+  
+  
+  ${ case.make_caption() }  
+
+  
+  % if not case.draft == 'Trial Memo':  
+  
+  
+  <p style='text-align: justify;'> ${ case.dear_recipients() }  </p> 
+
+
+  <p style='text-align: justify;'> ${ case.response_intro() }  </p> 
+    
+    
+  % endif
+
+  <p style='text-align: justify;'> <strong>INTERROGATORY ${ int(i)+int(case.rrogs.prior_requests_total)  }:</strong> ${ case.rrogs[i] }</p> 
+  
+  
+  <p style='text-align: justify;'> <strong>ANSWER:</strong> ${ case.user_clientlist().asnounobjects() } to the extent that ${ case.user_clientlist().pronoun_subjective() } ${ case.user_clientlist().does_verb('is') } not medically stationary, and continues to treat for ${ case.user_clientlist().pronoun_possessive("injuries") } . . . </p>
+fields:
+  - so chartnotes are incomplete: case.rrogs[i].incomplete_cns
+    datatype: yesno
+  - so symptoms continue to change: case.rrogs[i].changing_symptoms 
+    datatype: yesno  
+---
+question: |
+  % if case.juris.jurisdiction.name.text == 'federal':  
+  ${ case.fed_head() }  
+  % endif   
+    
+  
+  ${ case.doc_header() }  
+  
+  
+subquestion: |
+  
+  
+  ${ case.make_caption() }  
+
+  
+  % if not case.draft == 'Trial Memo':  
+  
+  
+  <p style='text-align: justify;'> ${ case.dear_recipients() }  </p> 
+
+
+  <p style='text-align: justify;'> ${ case.response_intro() }  </p> 
+    
+    
+  % endif
+
+  <p style='text-align: justify;'> <strong>INTERROGATORY ${ int(i)+int(case.rrogs.prior_requests_total) }:</strong> ${ case.rrogs[i] }</p> 
+  
+  
+  <p style='text-align: justify;'> How/Why, exactly, is this Interrogatory impermissible as expert discover? </p>
+fields:
+  - because no expert has been determined yet: case.rrogs[i].no_expert_yet 
+    datatype: yesno
+  - because the information sought is outside the scope of FRCP 26(b)(4)(A)(i): case.rrogs[i].expert_outside_frcp_26_b4Ai 
+    datatype: yesno
+    help: |
+      The expert’s qualifications, social or professional relationship to ${ case.user_clientlist().asnoun() }, a bibliography which the expert considers authoritative, a bibliography of all published works of the expert, the manner in which the expert became familiar with the facts of the case, and a list of all cases in which the expert has testified on the grounds that the information requested is outside the scope of FRCP 26(b)(4)(A)(i).
+  - because the expert was employed in anticipation of litigation: case.rrogs[i].experts_are_work_product 
+    datatype: yesno
+  - because it calls for expert opinion before expert disclosure: case.rrogs[i].expert_before_expert_disclosure 
+    datatype: yesno
+    
+---
+question: |
+  % if case.juris.jurisdiction.name.text == 'federal':  
+  ${ case.fed_head() }  
+  % endif   
+    
+  
+  ${ case.doc_header() }  
+  
+  
+subquestion: |
+  
+  
+  ${ case.make_caption() }  
+
+  
+  % if not case.draft == 'Trial Memo':  
+  
+  
+  <p style='text-align: justify;'> ${ case.dear_recipients() }  </p> 
+
+
+  <p style='text-align: justify;'> ${ case.response_intro() }  </p> 
+    
+    
+  % endif
+
+  <p style='text-align: justify;'> <strong>INTERROGATORY ${ int(i)+int(case.rrogs.prior_requests_total) }:</strong> ${ case.rrogs[i] }</p> 
+  
+  
+  <p style='text-align: justify;'> <strong>ANSWER:</strong> ${ case.user_clientlist().asnounobjects() } as the information sought is unreasonably cumulative and duplicative . . . </p>
+fields:
+  - because it is obtainable from RFP docs: case.rrogs[i].obtainable_rrfp 
+    datatype: yesno
+     
+  - because it is obtainable from docs in possession of the requesting party or from a third-party subpoena: case.rrogs[i].obtainable_others 
+    datatype: yesno
+    help: |
+      *But see La Chemise Lacoste v. Alligator Co.*, 60 FRD 164, 171 (D Del 1973). Generally, if a party has information, it should disclose it regardless of its source and availability. *See, e.g.*, *Reichert v. United States*, 51 FRD 500, 503 (ND Cal 1970). However, if the responding party does not have custody or control of the information or related documents, or if the answers to the interrogatories are in public documents, the court may hold that the responding party need not provide the answers. *La Chemise Lacoste*, 60 FRD at 171. Generally, “interrogatories that require a party to make extensive investigations, research or compilation or evaluation of data for his adversary are in many circumstances improper.” 8A Federal Practice and Procedure §2174 at 550. 
+---
+question: |
+
+  % if case.juris.jurisdiction.name.text == 'federal':  
+  ${ case.fed_head() }  
+  % endif   
+    
+  
+  ${ case.doc_header() }  
+  
+  
+subquestion: |
+  
+  
+  ${ case.make_caption() }  
+
+  
+  % if not case.draft == 'Trial Memo':  
+  
+  
+  <p style='text-align: justify;'> ${ case.dear_recipients() }  </p> 
+
+
+  <p style='text-align: justify;'> ${ case.response_intro() }  </p> 
+    
+    
+  % endif
+
+  <p style='text-align: justify;'> <strong>INTERROGATORY ${ int(i)+int(case.rrogs.prior_requests_total) }:</strong> ${ case.rrogs[i] }</p> 
+  
+fields:
+  - overly broad and unduly burdensome: case.rrogs[i].overly_broad
+    datatype: yesno
+    help: |
+      When considering whether an interrogatory is overly broad or unduly burdensome, courts will weigh it against "the needs of the case, considering the importance of the issues at stake in the action, the amount in controversy, the parties’ relative access to relevant information, the parties’ resources, the importance of the discovery in resolving the issues, and whether the burden or expense of the proposed discovery outweighs its likely benefit." FRCP 26(b)(1); *see also* FRCP 33(a)(2) ("An interrogatory may relate to any matter that may be inquired into under Rule 26(b)"). *See generally EEOC v. Bumble Bee Seafoods Co.*, 1979 US Dist Lexis 13799, at *9 (D Or Mar 14, 1979) (court held that discovery of 13-year-old documents would be “unduly burdensome in light of the marginal relevance and the cost of compiling” them); *Evans v. International Brotherhood of Electrical Workers*, 313 F Supp 1354, 1360 (ND Ga 1969) (“to require a corporate opponent to both answer the interrogatory and identify the source of its answer and any other source of information relating to the subject of the interrogatory, is, in the context of Title VII civil actions, unduly burdensome”). 
+      
+  - not reasonably calculated to lead to the discovery of admissible evidence: case.rrogs[i].not_reasonably_calculated 
+    datatype: yesno
+    help: |
+      Legends tick this one off whenever an interrogatory is objectionable on relevance, privilege, and work product. For time immemorial, Legends have used this objection as general coverall for relevance, privilege, and work product *See* FRCP 33(a)(2) ("An interrogatory may relate to any matter that may be inquired into under Rule 26(b)"); FRCP 26(b)(1) ("Parties may obtain discovery regarding any **nonprivileged matter that is relevant to any party's claim or defense** . . . ."). **What is relevance anyway?"** *Materiality* You better have a point worth making with the evidence; *see* FRE 401(a); and *Probative value* The evidence, even ever so slightly, makes a material fact more or less probable (i.e., the evidence that will advance the point worth making); *see* FRE 401(b).
+      
+  - attorney work product doctrine: case.rrogs[i].work_product
+    datatype: yesno
+    help: |
+      Although the responding party is entitled to protect work product, this does not preclude discovery of the facts obtained by the party. Answering interrogatories, 1 Pattern Discovery Motor Vehicles § 1:8
+      
+      
+      The “work product” privilege includes information which has been acquired or prepared in anticipation of litigation or for trial by or on behalf of a party or its attorneys as well as information relating to the mental impressions, conclusions, opinions or legal theories of any attorney or legal representative of an insurer. *Id.*
+      
+  - attorney-client privilege: case.rrogs[i].attorney_client
+    datatype: yesno
+    help: |
+      **Attorney-Client Privilege** protects against the compelled disclosure of attorney-client in a confidential setting with the purpose of giving legal advice. FRE 502. A Legend once broke the elements broken down thusly: (1)	Right parties - presence of the attorney and client (and no one else); (2)	Confidential setting – expectation of privacy; and (3)	Right purpose – to seek legal advice (if the client is paying the attorney, this element is obviously met).
+
+  - unreasonably cumulative and duplicative: case.rrogs[i].cumulative
+    datatype: yesno
+  
+
+
+    
+  - physician-patient privelege: case.rrogs[i].same_bodypart
+    datatype: yesno
+    
+  - vague and/or ambiguous: case.rrogs[i].vauge_ambiguous
+    datatype: yesno
+
+  - public record: case.rrogs[i].public_record
+    datatype: yesno
+
+  - info alread known by RROG recipeint: case.rrogs[i].defendant_possesses
+    datatype: yesno
+    help: |
+      Objecting to an interrogatory because it asks for information already available to the propounding party is questionable, but the court may limit discovery on this ground (presumably on a motion for a protective order) if the problem is substantial under Rule 26(b)(1). Answering interrogatories, 1 Pattern Discovery Motor Vehicles § 1:8 *But see Weiss v. Chrysler Motors Corp.*, 515 F2d 449, 456 (2d Cir 1975) (“It is no objection to interrogatories . . . that the information sought is within the knowledge of the interrogating party.”). 
+      
+      
+  - Answering party is not medically stationary: case.rrogs[i].not_medically_stationary
+    datatype: yesno
+      
+      
+  - impermissible expert discovery: case.rrogs[i].expert
+    datatype: yesno
+    help: |
+      An interrogatory concerning experts who are not expected to testify at trial may be objected to under Rule 26(b)(4)(B), although the rule implies that the identity of the nontestifying expert may be discoverable. Answering interrogatories, 1 Pattern Discovery Motor Vehicles § 1:8
+
+      
+      
+  - seeks to obtain the production of documents or to request “a complete recital of the contents of documents”: case.rrogs[i].seeks_docs
+    datatype: yesno
+    help: |
+      The interrogatory seeks documents and things available only under FRCP 34. *Lee v. Electric Products Co.*, 37 FRD 42, 44–45 (ND Ohio 1963) (citing *Bowles v. Safeway Stores, Inc.*, 4 FRD 469, 470–471 (D Mo 1945)) (FRCP 33 is not to be used to obtain the production of documents or to request “a complete recital of the contents of documents”).
+  - calls for a pure legal conclusion: case.rrogs[i].legal_conclusion
+    datatype: yesno
+    help: |
+      The better objection here, some Legends suggest, is that the interrogatory isn't reasonably calculated to lead to admissible evidence. *See generally* FRCP 33(a)(2) ("An interrogatory is not objectionable merely because it asks for an opinion or contention that relates to fact or the application of law to fact, but the court may order that the interrogatory need not be answered until designated discovery is complete, or until a pretrial conference or some other time.").
+  - annoying, embarrassing, or oppressive: case.rrogs[i].annoying_embarrassing_oppressive
+    datatype: yesno
+  - repetitive or duplicative: case.rrogs[i].repetitive_duplicative
+    datatype: yesno
+  - this information not within the knowledge, possession, custody or control of ${ case.user_clientlist().asnoun() }: case.rrogs[i].unknown_to_me
+    datatype: yesno
+  - beyond the scope and requirements of the ${ case.civpro[0] }: case.rrogs[i].outside_scope_of_rules
+    datatype: yesno
+  - premature: case.rrogs[i].premature
+    datatype: yesno
+  - not limited in time to the years of the alleged occurrence: case.rrogs[i].not_limited_in_time
+    datatype: yesno
+  - the information sought was generated or authored subsequent to the commencement of this court action. : case.rrogs[i].created_after_filing_of_lawsuit
+    datatype: yesno
+  - seeks statements made by witnesses without the requisite showing of substantial need and undue hardship: case.rrogs[i].seeks_witness_statement
+    datatype: yesno
+    
+  - seeks disclosure of information where such disclosure would violate the privacy rights of individuals: case.rrogs[i].privacy_rights_of_others
+    datatype: yesno
+    help: |
+      E.g., other hospital patients.
+  - seeks information relating to any confidentiality agreement between ${ case.recipients().asnoun() } and another: case.rrogs[i].confidentiality_agreement
+    datatype: yesno
+  - seeks information which would violate a court order restricting the disclosure of information: case.rrogs[i].protective_order
+    datatype: yesno
+  - seeks information which could result in the disclosure of confidential commercial information, trade secrets, or proprietary information.: case.rrogs[i].trade_secret
+    datatype: yesno
+  - not relevant to any issue in this action: case.rrogs[i].not_relevant
+    datatype: yesno
+---
+question: |
+  Your objections have been recorded. Please type out Plaintiff's answer, given under oath, below.
+right: |
+  “Each interrogatory must, to the extent it is not objected to, be answered separately and fully in writing under oath.” FRCP 33(b)(3). The objecting party must state “with specificity” the reasons for any objection. FRCP 33(b)(4); LR 33.2(b). If an objection is made to part of an interrogatory, “the remainder of the interrogatory must be answered at the time the objection is made, or within the period of any extension of the time to answer, whichever is later.” LR 33.2(b). 
+        
+    The answers to interrogatories must be “responsive, full, complete and unevasive.” *Miller v. Doctor’s General Hospital*, 76 FRD 136, 140 (WD Okla 1977); *Pilling v. General Motors Corp.*, 45 FRD 366, 369 (D Utah 1968). A party who “lacks necessary information to make a full, fair and specific answer to an interrogatory . . . should so state under oath and should set forth in detail the efforts made to obtain the information.” *Miller*, 76 FRD at 140 (defendant’s “conclusory statement” that an interrogatory sought medical information that defendant was not qualified to give was “not a sufficient response”). 
+        
+    In responding to an interrogatory, a party cannot unreasonably limit his or her answer to matters within the party’s own knowledge and ignore information immediately available to the party or under the party’s control. *Pilling*, 45 FRD at 369 (the court held that the plaintiff could not refuse to answer interrogatories “merely on the ground that the information sought is solely within the knowledge of his attorney”); *accord Miller*, 76 FRD at 140. 
+        
+    A party can explain the hearsay nature of information the party provides in its answer by stating, for example, “I do not personally have any firsthand information concerning this question, however, I have been informed by . . . .” *See Riley v. United Air Lines, Inc.*, 32 FRD 230, 233 (SDNY 1962). 
+subquestion: |
+      **INTERROGATORY ${ int(i)+int(case.rrogs.prior_requests_total) }:** ${ case.rrogs[i] }
+fields: 
+  - ANSWER: case.rrogs[i].answer
+    input type: area
+    rows: 10
+---
+question: |
+  Type, edit, or copy-paste the ${ ordinal(i) } RROG here:
+fields:
+  - Name: case.rrogs[i].name.text
+    input type: area
+    rows: 10
+---
+question: |
+  We pulled out ${ len(case.rrogs) } ROGs.
+subquestion: |
+  Are there any more ROGs?
+yesno: case.rrogs.there_is_another
+---
+objects:
+  - case.rrogs: SCList.using(object_type=SCRequests)

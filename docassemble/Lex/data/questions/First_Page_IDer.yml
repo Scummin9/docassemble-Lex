@@ -1,0 +1,82 @@
+#event: final
+question: |
+  all gud
+---
+event: final
+question: |
+  % for page in first_page:
+  Is "${ page }" a legal filing? 
+  
+  
+  * Apparently, False.
+  
+  
+  % endfor
+---
+question: |
+  Are you uploading filings or non-filings?
+fields: 
+  - no label: whatisit
+    choices:
+      - filings
+      - non-filings
+---
+mandatory: True
+code: |
+  machine_init
+  #sv_First_Page_IDer.delete_training_set() 
+  #First_Page_IDer.delete_training_set() 
+  machine_set
+  final
+---
+code: |
+  sv_First_Page_IDer = SVMMachineLearner('sv_first_page_ider')
+  First_Page_IDer = SimpleTextMachineLearner('first_page_ider')
+  machine_init=True
+---
+code: |
+  whatisit
+  d_rfp
+  pages
+  if whatisit == 'filings':
+    for page in first_page:
+      sv_First_Page_IDer.add_to_training_set(page, "1")
+      First_Page_IDer.add_to_training_set(page, "1")
+  else:
+    for page in first_page:
+      sv_First_Page_IDer.add_to_training_set(page, "0")
+      First_Page_IDer.add_to_training_set(page, "0")
+  machine_set=True
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  Upload a pdf:
+fields:
+  - no label: d_rfp
+    datatype: files
+validation code: |
+  try:
+    for item in d_rfp:
+      assert item.mimetype == 'application/pdf'
+    d_rfp.fix_up()
+  except:
+    raise validation_error("Sorry, that is not a valid PDF file")
+---
+code: |
+  first_page = []
+  for i in range(len(d_rfp)):
+    first_page.append(ocr_file(d_rfp[i], f=1, l=1))
+  pages = True
+---
+question: |
+  Was this a legal filing?
+yesno: answer
+---
+modules:
+  - .legeteme1
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+event: wait
+question: |
+  Relax and let the machine work its magic. This screen will reload when the requests are ready.
+reload: 10

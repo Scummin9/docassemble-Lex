@@ -1,0 +1,151 @@
+---
+only sets: facite_parties
+code: |
+  parties.clear()
+  key="is_party"
+  for x in case.info: 
+    if key in x:
+      #if x['is_party'] or x['is_client'] == True:
+      if x['is_party'] == True:
+        if x['clio_type'] == 'Person':
+          parties.appendObject(SCIndividual)
+          parties[-1].is_alien = True
+          parties[-1].name.first = x['first_name']
+          if x['middle_name'] != None:
+            parties[-1].name.middle = x['middle_name']
+          else: 
+            parties[-1].name.middle = ''
+          parties[-1].name.last = x['last_name']
+          parties[-1].id = x['id']
+          parties[-1].data = x
+          if x['Party Designation'] != '' or None:
+            parties[-1].designation = x['Party Designation']
+          else: 
+            parties[-1].data['Party Designation'] = parties[-1].designation
+          if x['Gender'] != '' or None:
+            if x['Gender'] in ('male', 'm'):
+              parties[-1].gender = 'male'
+            elif x['Gender'] in ('female', 'f'):
+              parties[-1].gender = 'female'
+            elif str(x['Gender']) in ('other'):
+              parties[-1].gender = 'other'
+          else: 
+            parties[-1].data['Gender'] = parties[-1].gender
+          parties[-1].type = parties[-1].alien_type
+          del parties.new_type
+        else:
+          parties.appendObject(SCPerson)
+          parties[-1].is_alien = True
+          parties[-1].name.text = str(x['name'])
+          parties[-1].id = x['id']
+          parties[-1].data = x
+          if x['Party Designation'] != '' or None:
+            parties[-1].designation = x['Party Designation']
+          else: 
+            parties[-1].data['Party Designation'] = parties[-1].designation
+          parties[-1].type = parties[-1].alien_type
+          del parties.new_type
+          parties[-1].complete = True
+  facite_parties = True
+---
+event: curreCaption
+code: |
+  user_set_up
+  copy_attorney_user
+  copy_user_firm
+  user_firm_renamed
+  parties.edited
+  clients_related
+  lawyers_related
+  lawfirms.edited
+  lawyers.edited
+  caption_test
+---
+event: curreAlchemy
+code: |
+  user_set_up
+  onetwostep
+  case_info
+  facite_parties
+  lawyers.facite
+  user_firm_renamed
+  party_hard1
+  party_hard3
+  parties.edited
+  new_parties_created
+  clients_related
+  lawyers_related
+  lawfirms.edited
+  new_lawfirms_created
+  lawyers.gather()
+  lawyers.edited
+  new_lawyers_created
+  lawyers_related
+  parties_updated2
+  lawyers_updated2
+  alchemy_test
+---
+event: caption_test
+question: |
+  Here is your document.
+attachment:
+  name: Your letter
+  filename: letter
+  docx template file: prod_rrfpfed1111.docx
+  valid formats:
+    - pdf
+    - docx
+---
+only sets: lawyers.facite
+code: |
+  lawyers.clear()
+  lawfirms.clear()
+  lawfirms[0] = userfirm.copy_deep('lawfirms[0]')
+  for i in range(len(attorneyuser)):
+    if attorneyuser[i].ourhouse:
+      lawyers[i] = attorneyuser[i].copy_deep('lawyers[i]')
+  key="is_lawyer"
+  key2="Gender"
+  for x in case.info: 
+    if key in x:
+      if x['is_lawyer'] not in (None, False):
+        lawyers.appendObject(SCIndividual)
+        lawyers[-1].is_alien = True
+        lawyers[-1].name.first = x['first_name']
+        if x['middle_name'] != None:
+          lawyers[-1].name.middle = x['middle_name']
+        else: 
+          lawyers[-1].name.middle = ''
+        lawyers[-1].name.last = x['last_name']
+        lawyers[-1].email = x['primary_email_address']
+        lawyers[-1].id = x['id']
+        lawyers[-1].data = x
+        if x['company'] != '' or None:
+          lawfirms.appendObject()
+          place = x['company']
+          lawfirms[-1].is_alien = True
+          lawfirms[-1].name.text = str(place['name'])
+          lawfirms[-1].id = place['id']
+          lawfirms[-1].data = place
+          its_address = x['primary_address']
+          if its_address['street'] != '' or None:
+            lawfirms[-1].address.address = str(its_address['street'])
+          if  its_address['city'] != '' or None:
+            lawfirms[-1].address.city = str(its_address['city'])
+          if its_address['province'] != '' or None:
+            lawfirms[-1].address.state = str(its_address['province'])
+          if its_address['postal_code'] != '' or None:
+            lawfirms[-1].address.zip = str(its_address['postal_code'])
+          lawyers[-1].firm = lawfirms[-1]
+        if key2 in x:
+          if x['Gender'] != '' or None:
+            if x['Gender'] in ('male', 'm'):
+              lawyers[-1].gender = 'male'
+            elif x['Gender'] in ('female', 'f'):
+              lawyers[-1].gender = 'female'
+            elif str(x['Gender']) in ('other'):
+              lawyers[-1].gender = 'other'
+          else: 
+            lawyers[-1].data['Gender'] = lawyers[-1].gender
+  lawyers.facite = True
+---

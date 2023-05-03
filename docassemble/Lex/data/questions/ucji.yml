@@ -1,0 +1,217 @@
+---
+question: |
+  Which jury instructions do you want to use?
+fields:
+  - no label: jury_instruction_titles
+    datatype: multiselect
+    rows: 50
+    code: |
+      JuryInstruction.all_instruction_titles()
+---
+code: | 
+  for key in jury_instruction_titles.keys():
+    if jury_instruction_titles[key]:
+      jury_instructions.appendObject()
+      jury_instructions[-1].name.text = str(key)
+  log("Key . . . . 1")
+  
+  jury_instructions.there_is_another=False
+  jury_instructions.gathered=True
+  log("Key . . . . 2")
+  for instruction in jury_instructions:
+    instruction.db_read()
+  log("Key . . . . 3")
+  named_jury_instructions = True
+---
+code: |
+   for instruction in jury_instructions:
+     for mad_lib in get_madlibs(instruction.instruction):
+       instruction.madlibs.appendObject()
+       instruction.madlibs[-1].name.text = str(mad_lib)
+     instruction.madlibs.there_is_another=False
+     instruction.madlibs.gathered=True
+   add_libs = True
+---
+code: |
+  for instruction in jury_instructions:
+    for mad_lib in instruction.madlibs:
+       mad_lib.alternate_text
+  mad_add_libs = True
+---
+question: | 
+  ${ jury_instructions[i].instruction }
+fields:
+  - ${ jury_instructions[i].madlibs[j].name.text }: jury_instructions[i].madlibs[j].alternate_text
+    default: jury_instructions[i].madlibs[j].name.text
+---
+question: |
+  What is the title and number of your new jury instruction?
+fields:
+  - number: jury_instructions[i].no
+  - title: jury_instructions[i].title
+---
+question: |
+  What is the new jury instruction?
+fields:
+  - number: jury_instructions[i].instruction
+    datatype: area
+    rows: 50
+---
+question: |
+  What is the comment title and comment number of your new jury instruction?
+fields:
+  - comment title: jury_instructions[i].comment_title
+    choices:
+      - Comment
+      - Caveat
+  - comment: jury_instructions[i].comment
+---
+question: |
+  Besides ${ jury_instructions }, are there more jury instructions?
+yesno: jury_instructions.there_is_another
+---
+continue button field: jury_instructions.SHOW_jury
+table css class: table mytable
+question: |
+  Review your RFPs below
+subquestion: |
+
+  ${ jury_instructions.table }
+  
+  
+  ${ jury_instructions.add_action(label='Add Another Requested Jury Instruction') }
+
+---
+table: jury_instructions.table
+rows: jury_instructions
+columns:
+  -  "": |
+      row_item.name.text
+  - "": | 
+      "UCJI No."
+  -  "": |
+      row_item.no
+  -  "": |
+      row_item.title
+  -  "": |
+      row_item.instruction
+  -  "": |
+      row_item.comment_title
+  -  "": |
+      row_item.comment
+  -  "": |
+      row_item.madlibs
+
+allow reordering: True
+edit:
+  - name.text
+  - title
+  - instruction
+  - comment_title
+  - comment
+---
+continue button field: SHOW_UCJI
+table css class: table mytable
+question: |
+  Review your RFPs below
+subquestion: |
+
+
+  ${ ucji.table }
+  
+  
+  
+---
+table: ucji.table
+rows: ucji
+columns:
+  - "": | 
+      "UCJI No."
+  -  "": |
+      row_item.no
+  -  "": |
+      row_item.name.text
+  -  "": |
+      row_item.title
+  -  "": |
+      row_item.instruction
+  -  "": |
+      row_item.comment_title
+  -  "": |
+      row_item.comment
+  -  "": |
+      row_item.update
+allow reordering: True
+---
+#event: SHOW_UCJI
+question: |
+  % for instruction in instructions:
+  
+  * ${ instruction }
+
+  % endfor
+---
+#event: SHOW_UCJI
+question: |
+  ${ instructions }
+  % for instruct in ucji:
+  
+  
+  * UCJI ${ instruct.no }: ${ instruct.title }
+  
+  
+  ${ instruct.instruction }
+  
+  
+  ----------------
+  ${ instruct.comment }
+  
+  
+  ${ instruct.update }
+  
+  
+  % endfor
+---
+objects:
+  - ucji: SCList.using(object_type=JuryInstruction, there_are_any=True, auto_gather=False)
+  - jury_instructions: SCJuryInstructionList.using(auto_gather=False, there_are_any=True)
+  - jury_instructions[i].madlibs: SCList.using(object_type=Thing, there_are_any=True, auto_gather=False)
+#---
+#code: |
+#  jury_instructions.gathered=True
+---
+question: |
+  The text:
+fields:
+  - no label: ucji_text
+    datatype: area
+    rows: 100
+---
+code: |
+  ucji_text
+  instructions = ucji_getter(ucji_text)
+  for instruction in instructions:
+        ucji.appendObject()
+        ucji[-1].name.text = instruction[0]
+        ucji[-1].no = instruction[1]
+        ucji[-1].title = instruction[2]
+        #ucji[-1].db_read()
+        ucji[-1].instruction = instruction[3]
+        ucji[-1].comment_title = capitalize(instruction[4])
+        ucji[-1].comment = instruction[5]
+        ucji[-1].update = as_datetime(instruction[6])
+        #ucji[-1].db_save()
+  ucji.there_is_another=False
+  ucji.gathered=True
+  SHOW_UCJI
+  get_ucji = True
+---
+code: |
+  #jury_instructions.gather()
+  jury_instruction_titles
+  named_jury_instructions
+  jury_instructions.SHOW_jury
+  add_libs
+  mad_add_libs
+  final_proposed_ucji
+  get_jury = True

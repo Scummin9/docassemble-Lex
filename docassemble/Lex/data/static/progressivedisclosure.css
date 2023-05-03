@@ -1,0 +1,31 @@
+a span.pdcaretopen {
+    display: inline;
+}
+
+a span.pdcaretclosed {
+    display: none;
+}
+
+a.collapsed .pdcaretopen {
+    display: none;
+}
+
+a.collapsed .pdcaretclosed {
+    display: inline;
+}
+.card {
+	position: relative;
+	display: -ms-flexbox;
+	display: contents;
+	-ms-flex-direction: column;
+	flex-direction: column;
+	min-width: 0%;
+	/* word-wrap: break-word; */
+	background-color: #fff;
+	background-clip: border-box;
+	border: 0px solid rgba(0,0,0,.125);
+	border-radius: .25rem;
+}
+.bg-light {
+	background-color: #fff0 !important;
+}

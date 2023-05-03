@@ -1,0 +1,1393 @@
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+objects:
+  - case.lawyer_lawfirm_rel: SCList.using(object_type=DAObject, auto_gather=False)
+  - case.firm_client: SCList.using(object_type=DAObject, auto_gather=False)
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+code: |
+  log("lawyer_lawfirm_rel")
+  case.lawyer_lawfirm_rel.clear()
+  for lawfirm in case.lawfirms:
+    for lawyer in case.lawyers:
+      if lawyer.lawyer.firm.id == lawfirm.lawfirm.id:
+        case.lawyer_lawfirm_rel.appendObject()
+        log("FIRM3")
+        case.lawyer_lawfirm_rel[-1].lawyer = lawyer.lawyer
+        log("FIRM4")
+        case.lawyer_lawfirm_rel[-1].lawfirm = lawfirm.lawfirm
+  case.lawyer_lawfirm_rel.there_is_another = False
+  case.lawyer_lawfirm_rel.gathered = True
+  lawyers_related = True
+depends on:
+  - case.lawfirms
+  - case.lawyers
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+code: |
+  case.firm_client.clear()
+  for lawfirm in case.lawfirms:
+    for party in case.parties:
+      for firm in party.party.firms:
+        if lawfirm.lawfirm.id == firm.id:
+          case.firm_client.appendObject()
+          log("CLIENTS_RELATED 4")
+          case.firm_client[-1].lawfirm = lawfirm.lawfirm
+          log("CLIENTS_RELATED 5")
+          case.firm_client[-1].client = party.party
+          log("CLIENTS_RELATED 6")
+  log("CLIENTS_RELATED 7")
+  case.firm_client.there_is_another = False
+  case.firm_client.gathered = True
+  clients_related = True
+depends on:
+  - case.lawfirms
+  - case.parties
+---
+objects:
+  - case.lawfirms: SCLawfirmList.using(auto_gather=False)
+  - case.lawfirms[i].lawfirm: Lawfirm
+  - case.parties: SCPartyList.using(auto_gather=False)
+  - case.parties[i].party.address: Address
+  - case.parties[i].party: Party
+  - case.parties[i].party.caption_type: CaptionType
+  - case.parties[i].party.name.caption_type: CaptionType
+  - case.parties[i].party.gender: Gender
+  - case.lawyers: SCLawyerList.using(auto_gather=False)
+  - case.lawyers[i].lawyer: Lawyer
+  - case.lawyers[i].lawyer.gender: Gender
+  - case.claims: SCList
+  - case.claims[i].claim: Claim
+  - case.claims[i].party: Party
+  - case.claims[i].aggreived_party: Party
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  Upload your firm's logo:
+fields:
+  - ${ case.destination_base() }: userstamp
+    datatype: file
+---
+question: |
+  ${ case.doc_header() }
+subquestion: |
+  What is the ${ case.no() }?
+fields:
+  - ${ case.no() }: case.docket_number
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+attachment:
+  variable name: the_alldocx
+  docx template file: Doc2.docx
+  filename: File
+  valid formats:
+  - docx
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+objects:
+  r: DARedis
+  statistics: DADict.using(gathered=True)
+---
+code: |
+  r.incr(r.key(i))
+  statistics[i] = True
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  Was the product owned or leased by the end user at the time of injury?
+fields:
+  - no label: case.owned_or_leased
+    choices:
+    - owned
+    - leased
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  What is this document's title?
+fields:
+  - no label: case.utitle
+    default: |
+      ${ case.default_title }
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  What is ${ case.lawyers[i].lawyer.possessive('') }gender?
+fields:
+  - Gender: case.lawyers[i].lawyer.gender.name.text
+    choices:
+    - male
+    - female
+    - other
+validation code: |
+  case.lawyers[i].lawyer.gender.db_read()
+  case.lawyers[i].lawyer.db_save()
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  Date of the inident:
+fields:
+  - Date of Incident: case.doi
+    datatype: date
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  Time of the incident:
+fields:
+  - Time of Incident: case.toi
+    datatype: time
+    required: False
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  What date was this action filed?
+fields:
+  - Date: case.dof
+    datatype: date
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  On what date was ${ parties[i].party.party_type } ${ parties[i] } served?
+fields:
+  - Date: case.parties[i].party.dos
+    datatype: date
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  What type of entity is the ${ ordinal(i) } party?
+field: case.parties[i].party.name.caption_type.name.text
+buttons:
+  - Individual: individual
+  - Individual Under Pseudonym: individual proceeding under a pseudonym
+  - Trustee: trustee
+  - Personal Representative of an Estate: personal representative for an estate
+  - Guardian ad litem: guardian ad litem
+  - Individual D/B/A: doing business as
+  - Business Entity: business entity
+  - Governmental Entity: governmental entity
+validation code: |
+   case.parties[i].party.name.caption_type.db_read()
+   case.parties[i].party.db_save()
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  How do you want the description after ${ case.parties[i].party.possessive('') }name to appear in the caption?
+fields:
+  - Caption Description Text: case.parties[i].party.caption_text
+    required: False
+    default: |
+      ${ case.parties[i].party.caption_description() }
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+code: |
+  for party in case.parties:
+    party.party.caption_description = party.party.caption_description()
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+initial: False
+code: |
+  #interview_list(action='delete_all')
+  for item in ('userfirm', 'userstamp', 'attorneyuser'):
+    userdata2.delete(item)
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+mandatory: True
+code: |
+  set_parts(title='Trial Legend', logo='<img src="' + company_logo.url_for() + '" style="height: 35px; width: 35px;">')
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+code: |
+  charlist = []
+  othercharlist = []
+  caption_characters = 0
+  othercaption_characters = 0
+  for party in add_separators(case.parties.the_ps().caption(), separator=", ",  last_separator=", and ", end_mark=', '):
+    charlist.append(party)
+  charstring = ''.join(charlist)
+  caption_characters = len(charstring)
+  for party in add_separators(case.parties.the_ds().caption(), separator=", ",  last_separator=", and ", end_mark=', '):
+    othercharlist.append(party)
+  othercharstring = ''.join(othercharlist)
+  othercaption_characters = len(charstring) + len(othercharstring)
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  Is this a federal or a state case?
+fields:
+  - Jurisdiction: case.juris.jurisdiction.name.text
+    default: federal
+    choices:
+    - federal
+    - state
+validation code: |
+  case.juris.jurisdiction.db_save()
+---
+objects:
+  #- case.juris: SCJurisdiction
+  - case.juris.jurisdiction: Jurisdiction
+  - case.juris.state: State
+  - case.juris.county: County
+  - case.juris.district: District
+  - case.juris.division: Division
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  In which state is this case filed?
+fields:
+  - State: case.juris.state.name.text
+    code: |
+      states_list()
+    default: Oregon
+validation code: |
+  case.juris.state.db_save()
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  In which ${ case.juris.county_level() } is this case filed?
+fields:
+  - ${ case.juris.county_level() }: case.juris.county.name.text
+    code: |
+      case.juris.trial_court_unit_keys()
+validation code: |
+  case.juris.county.db_save()
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  In which ${ case.juris.district_level() } is this case filed?
+fields:
+  - ${ case.juris.district_level() }: case.juris.district.name.text
+    code: |
+      case.juris.trial_court_unit_values()
+validation code: |
+  case.juris.district.db_save()
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  In which ${ case.juris.division_level() } is this case filed?
+fields:
+  - ${ case.juris.division_level() }: case.juris.division.name.text
+    code: |
+      case.juris.trial_court_divisions()
+validation code: |
+  case.juris.division.db_save()
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+code: |
+    case.districts = []
+    for item in FedCourts[str(state_name(case.juris.state.name.text))]:
+      case.districts.append(item)
+    if len(case.districts) == 1:
+      case.juris.district.name.text = case.districts[0]
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+code: |
+    the_state = FedCourts[str(state_name(case.juris.state.name.text))]
+    case.divisions = []
+    for item in the_state[str(case.juris.district)]:
+      case.divisions.append(item)
+    if len(case.divisions) == 1:
+      case.juris.division.name.text = case.divisions[0]
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+include:
+  - ClioFed.yml
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+mandatory: True
+code: |
+  menu_items = [ action_menu_item('Main menu', 'switch_destination', destination='main menu') ]
+  destination = 'main menu'
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+code: |
+  case.destination = destination
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+event: switch_destination
+code: |
+  destination = action_argument('destination')
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+event: main_menu
+question: |
+  Where to go?
+subquestion: |
+  [Test SQLObjects](${ url_action('switch_destination', destination='TestSQLObjects') }).
+
+
+  [Edit Practice Info](${ url_action('switch_destination', destination='Profiler') }).
+
+
+  [Discovery Response](${ url_action('switch_destination', destination='Discovery Response') }).
+
+
+  [Depo Notice](${ url_action('switch_destination', destination='Depo Notice') }).
+
+
+  [Get a Signature](${ url_action('switch_destination', destination='Signor') }).
+
+
+  [PDF Combiner](${ url_action('switch_destination', destination='pdfconcatenator') }).
+
+
+  [RFP Maker](${ url_action('switch_destination', destination='RFP Maker') }).
+
+
+
+  [pdfconcatenator](${ url_action('switch_destination', destination='pdfconcatenator') }).
+
+
+  [Motions *in limine*](${ url_action('switch_destination', destination='MIL') }).
+
+
+  [Trial Memo](${ url_action('switch_destination', destination='Trial Memo') }).
+
+
+  [Exhibit Labeler](${ url_action('switch_destination', destination='Exhibits') }).
+
+
+  [Send a Fax](${ url_action('switch_destination', destination='faxer') }).
+
+
+  [Lien Satisfaction Letter](${ url_action('switch_destination', destination='Lien') }).
+
+
+  [Calculate Interest](${ url_action('switch_destination', destination='Interest') }).
+
+
+  [Calendar Service Checks and Default Notices](${ url_action('switch_destination', destination='DefaultCal') }).
+
+
+    [Subpoena](${ url_action('switch_destination', destination='Subpoena') }).  
+    
+    
+    [Declaration](${ url_action('switch_destination', destination='Declaration') }).
+    
+    [Motion to Amend to Allege Punitive Damages](${ url_action('switch_destination', destination='Motion to Amend to Allege Punitive Damages') }).
+    
+    
+    [Fill Blank Authorization Forms](${ url_action('switch_destination', destination='Fill Blank Authorization Forms') }).
+    
+    
+    [Summons](${ url_action('switch_destination', destination='Summons') }).
+    
+    
+    [Upload Jury Instructions](${ url_action('switch_destination', destination='UCJI') }).
+    
+    
+    [Propose Jury Instructions](${ url_action('switch_destination', destination='ProposeJuryInstructions') }).
+
+    [Draft LORs](${ url_action('switch_destination', destination='DraftLORs') }).
+undefine:
+  - my_documents
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+objects:
+  - rrfp_maker_icon: DAStaticFile.using(filename='RRFP_Maker.png', alt_text='RRFP Maker', style="max-width:150px;")
+  - rr_theog_icon: DAStaticFile.using(filename='Rog_Rog.png', alt_text='Rog Rog The OG', style="max-width:150px;")
+  - the_armory_icon: DAStaticFile.using(filename='the_armory.png', alt_text='The Armory', style="max-width:150px;")
+  - rfp_maker_icon: DAStaticFile.using(filename='rfpmaker.png', alt_text='RFP Maker', style="max-width:150px;")
+  - alchemy_icon: DAStaticFile.using(filename='Alchemist.png', alt_text='Alchemy', style="max-width:150px;")
+  - rricon: DAStaticFile.using(filename='Counter_Intelligence.png', alt_text='Counter Intelligence', style="max-width:150px;")
+---
+question: |
+  What is the next lawfirm's name?
+fields:
+  - no label: case.lawfirms[i].lawfirm.name.text
+    datatype: combobox
+    code: |
+      Lawfirm.all_lawfirm_names()
+validation code: |
+  case.lawfirms[i].lawfirm.db_save()
+---
+question: |
+  What is the case name?
+fields:
+  - no label: case.casename
+    datatype: combobox
+    code: |
+      Case.all_case_names()
+validation code: |
+  case.db_read()
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+only sets: Flex1
+code: |
+    case.casename
+    case.juris.jurisdiction.name.text
+    case.juris.state.name.text
+    if case.juris.jurisdiction.name.text == 'federal':
+      case.juris.district.name.text
+      case.juris.division.name.text
+    else:
+      case.juris.county.name.text
+    case.docket_number
+    Flex1 = True
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+code: |
+    if destination == 'main menu':
+      main_menu
+    elif destination == 'Style':
+      get_style
+    elif destination == 'Complaint':
+      case.docket_number = ''
+      case.draft = 'Complaint'
+      case.is_pleading = True
+    elif destination == 'Summons':
+      case.draft = 'Summons'
+      case.is_summons = True
+    elif destination == 'Motion to Postpone':
+      case.draft = 'Motion to Postpone'
+      case.is_request = False
+    elif destination == 'Depo Notice':
+      case.draft = 'Depo Notice'
+      case.is_request = False
+    elif destination == 'Trial Memo':
+      case.draft = 'Trial Memo'
+      case.is_request = False
+    elif destination == 'Discovery Response':
+      case.draft = 'Discovery Response'
+      case.is_request = True
+    elif destination == 'CNB Auth':
+      case.draft = 'CNB Auth'
+      case.is_request = False
+    elif destination == 'Meds Request':
+      case.draft = 'Meds Request'
+      case.is_request = False
+    elif destination == 'Signor':
+      case.draft = 'Signor'
+      case.is_request = False
+    elif destination == 'pdfconcatenator':
+      case.draft = 'pdfconcatenator'
+      case.is_request = False
+    elif destination == 'faxer':
+      case.draft = 'faxer'
+      case.is_request = False
+    elif destination == 'Notice of New Firm':
+      case.draft = 'Notice of New Firm'
+      case.is_request=False
+    elif destination == 'RFP Maker':
+      case.draft = 'RFP'
+      case.is_request=True
+    elif destination == 'MIL':
+      case.draft = 'MIL'
+      case.is_request=False
+    elif destination == 'Trial Memo':
+      case.draft = 'Trial Memo'
+      case.is_request=False
+    elif destination == 'Exhibits':
+      case.draft = 'Exhibits'
+      case.is_request=False
+    elif destination == 'Lien':
+      case.draft = 'Lien'
+      case.is_request = False
+    elif destination == 'Profiler':
+      case.draft = 'Profiler'
+      case.is_request = False
+    elif destination == 'TestSQLObjects':
+      case.draft = 'TestSQLObjects'
+      case.is_request = False
+    elif destination == 'Interest':
+      case.draft = 'Interest'
+      case.is_request = False
+    elif destination == "DefaultCal":
+      case.draft = "DefaultCal"
+      case.is_request = False
+    elif destination == 'Subpoena':
+      case.draft = 'Subpoena'
+      case.is_request = False
+    elif destination == 'Declaration':
+      case.draft = 'Declaration'
+      case.is_request = False
+    elif destination == 'Motion to Amend to Allege Punitive Damages':
+      case.draft = 'Motion to Amend to Allege Punitive Damages'
+      case.is_request = False
+    elif destination == 'Fill Blank Authorization Forms':
+      case.draft = 'Fill Blank Authorization Forms'
+      case.is_request = False
+    elif destination == 'UCJI':
+      case.draft = 'UCJI'
+      case.is_request = False
+    elif destination == 'ProposeJuryInstructions':
+      case.draft = 'ProposeJuryInstructions'
+      case.is_request = False
+    elif destination == 'DraftLORs':
+      case.draft = 'DraftLORs'
+      case.is_request = False
+    destiny = True
+
+---
+question: |
+  When was this case filed?
+fields:
+  - Date of Filing: case.filed_on
+    datatype: date
+---
+question: |
+  What is a good date for resetting the trial?
+fields:
+  - Start: case.new_trial_start_date
+    datatype: date
+  - End: case.new_trial_end_date
+    datatype: date
+---
+question: |
+  What is the current trial date?
+fields:
+  - Start: case.current_trial_start_date
+    datatype: date
+  - End: case.current_trial_end_date
+    datatype: date
+---
+question: |
+  Was trial previously set from a different date than ${ case.current_trial_date() }?
+yesno: case.prior_trial_dates.there_are_any
+---
+question: |
+  List all dates of prior settings for trial:
+fields:
+  - Start: case.prior_trial_dates[i].start
+    datatype: date
+  - End: case.prior_trial_dates[i].end
+    datatype: date
+list collect: True
+---
+objects:
+  case.prior_trial_dates: SCList
+---
+question: |
+  Why are you moving to postpone trial?
+fields:
+  - The reason for the requested postponement is : case.reasons_to_postpone
+    datatype: area
+    rows: 15
+---
+event: party_addresses
+question: |
+  % for party in case.parties:
+  
+  * ${ party.party.address.block() }
+  
+  % endfor
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+id: interview order
+mandatory: True
+code: |
+    #screen = {item: True for item in ['user_name', 'firm_name']}
+    destiny
+    if destination == "Testing":
+      testes
+    elif case.draft == "DraftLORs":
+      LORs
+    elif case.draft == "UCJI":
+      get_ucji
+    elif case.draft == "Fill Blank Authorization Forms":
+      filled_forms
+    elif case.draft == "Exhibits":
+      collect_and_label_exhibits
+    elif case.draft == "DefaultCal":
+      calendar_default_notices
+    elif case.draft == 'Profiler':
+      profile3_page
+    elif case.draft == 'CNB Auth':
+      adsignor
+    elif case.draft == 'Meds Request':
+      CNB_Req
+    elif case.draft == 'Signor':
+      adsignor2
+    elif case.draft == 'pdfconcatenator':
+      concatenated
+    elif case.draft == 'faxer':
+      statement_of_fax
+    elif case.draft == 'Interest':
+      interest_calculated
+      interest_owed
+    elif case.draft == 'Subpoena':
+      subpoena
+    elif case.draft == 'Lien':
+      Final_Satisfaction_of_Liens
+    elif case.draft == 'TestSQLObjects':
+      Flex1
+      get_all_lawfirms
+      get_all_lawyers
+      get_all_parties
+      clients_related
+      lawyers_related
+      
+      log("next: IFNOTALL!")
+      if not all(len(party.party.party_types.elements) for party in case.parties):
+        log("next: GET3DPS!")
+        
+        get_party_designations
+      get_3pd_and_cross_parties
+      log("next: EVERYBODYSHOW!")
+      everybodyshow
+
+    #set_parts(title=str(case.name() + 'Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED'), logo='<img src="' + company_logo.url_for() + '" style="height: 35px; width: 35px;">')
+    Flex1
+    #party_addresses
+    get_all_lawfirms
+    get_all_lawyers
+    get_all_parties
+    clients_related
+    lawyers_related
+    log("next: IFNOTALL!")
+    if not all(len(party.party.party_types.elements) for party in case.parties):
+      log("next: GET3DPS!")
+      get_party_designations
+    get_3pd_and_cross_parties
+    case.edited
+    recievers
+   
+    if case.draft == 'Discovery Response':
+      quaero_pdf
+      perform_ocr
+      response_gatherer1
+      response_gathererX
+      response_gatherer2
+      response_gatherer3
+      response_gatherer4
+      if len(case.rrfps):
+        objection_review
+      if len(case.rrogs):
+        rrog_objection_review
+      if len(case.rrfas):
+        rrfas_objection_review
+    #get_style
+    log("Summons . . . . 1")
+    if case.draft == "Summons":
+      log("Summons . . . . 2")
+      for party in case.parties.elements:
+        log("Summons . . . . 3")
+        party.party.address.address
+      log("Summons . . . . 4")
+      summons
+    elif case.draft == "ProposeJuryInstructions":
+      get_jury
+    elif case.draft == "Motion to Postpone":
+      motion_to_postpone
+    else:
+      final_rrfp
+---
+code: |
+      for lawfirm in case.lawfirms.elements:
+        lawfirm.lawfirm.complete_lawfirm
+        lawfirm.case = Case.by_id(case.id)
+      case.add_lawfirms()
+      log("case.add_lawfirms()")
+      case.lawfirms.gathered = True
+---
+code: |
+      case.get_lawfirms()
+      log("case.get_lawfirms()")
+      get_all_lawfirms = True
+---
+only sets: case.lawyers.gathered
+code: |
+      for lawyer in case.lawyers.elements:
+        lawyer.lawyer.complete_lawyer
+        lawyer.case = Case.by_id(case.id)
+      case.add_lawyers()
+      log("case.add_lawyers()")
+      for lawyer in case.lawyers.elements:
+        lawyer.lawyer.firm.name.text
+      log("case.lawyers.gathered = True")
+      case.lawyers.gathered = True
+---
+code: |
+      case.get_lawyers()
+      log("case.get_lawyers()")
+      get_all_lawyers = True
+---
+code: |
+      for party in case.parties.elements:
+        party.party.complete_party
+        party.case = Case.by_id(case.id)
+      case.add_parties()
+      log("case.add_parties()")
+      for party in case.parties.elements:
+        for firm in party.party.firms:
+          case.add_partylawfirm(party.party, firm)
+          case.add_lawfirm_party(party.party, firm)
+      if case.draft == "Summons":
+        for party in case.parties.elements:
+          if party.party.party_type.name.text == "Defendant":
+            party.party.address.address
+      case.parties.gathered = True
+---
+code: |
+      case.get_parties()
+      log("case.get_parties()")
+      for party in case.parties.elements:
+        case.relate_lawfirms_to_parties(party.party)
+      get_all_parties = True
+---
+code: |
+      log("case.get_party_designations() 1")
+      for party in case.parties.elements:
+        case.get_party_designations(party.party)
+        log("case.get_party_designations() 2")
+      get_party_designations = True
+---
+code: |
+        log("get_3pd_and_cross_parties . . . . 1")
+        party_typing
+        log("get_3pd_and_cross_parties . . . . 2")
+        third_parties_claimed
+        log("get_3pd_and_cross_parties . . . . 3")
+        threePPs
+        log("get_3pd_and_cross_parties . . . . 4")
+        if case.cross_claims.there_are_any == True:
+          case.cross_claims.ask_number = True
+          crossclaim
+        get_3pd_and_cross_parties = True
+---
+code: |
+    log("case.add_party_designation(party.party, designation)   1")
+    for party in case.parties.elements:
+      log("case.add_party_designation(party.party, designation)   4")
+      for designation in party.party.party_types.elements:
+        log("case.add_party_designation(party.party, designation)   3")
+        case.add_party_designation(party.party, designation)
+      log("case.add_party_designation(party.party, designation)   4")
+      party.party.party_types.there_is_another = False
+      party.party.party_types.gathered = True
+
+only sets: case.parties[i].party.party_types.gathered
+---
+objects:
+  - case.parties[i].party.party_type: Designation
+  - case.parties[i].party.party_types: SCList.using(there_are_any=True, auto_gather=False, object_type=Designation)
+---
+code: |
+  for party in case.parties.elements:
+    if not len(party.party.party_types.elements):
+      log("party_typing  1")
+      party.party.designation = party.party.party_type.name.text
+      log("party_typing  2")
+      party.party.party_types.clear()
+      party.party.party_types.appendObject()
+      party.party.party_types[-1].name.text = str(party.party.party_type.name.text)
+      party.party.party_types[-1].db_read()
+      log("party_typing  3")
+  log("party_typing = True")
+  party_typing = True
+
+depends on:
+  - case.parties[i].party.designation
+  - case.parties[i].party.party_type
+---
+code: |
+  for other_party in case.parties:
+      for party in case.parties:
+        if party.threePPs.there_are_any == True:
+          log("party_typing  4")
+          if other_party.party in party.threePPs and "Third-Party Plaintiff" not in other_party.party.party_types.elements:
+           log("party_typing  5")
+           other_party.party.is_3dp = True
+           log("party_typing  6")
+           other_party.party.party_types.appendObject()
+           log("party_typing  7")
+           other_party.party.party_types[-1].name.text = str("Third-Party Plaintiff")
+           log("party_typing  8")
+           other_party.party.party_types[-1].db_read()
+           log("party_typing  9")
+  threePPs = True
+
+depends on:
+  - case.parties[i].threePPs
+---
+objects:
+  - case.cross_claims: SCCrossClaims
+---
+code: |
+  log("crossclaim . . . . 1")
+  for claim in case.cross_claims:
+    for party in case.parties:
+      log("crossclaim . . . . 2")
+      if other_party.party in claim.ps:
+        other_party.party.is_cross_p = True
+        other_party.party.party_types.appendObject()
+        other_party.party.party_types[-1].name.text = str("Cross-Plaintiff")
+        other_party.party.party_types[-1].db_read()
+      log("crossclaim . . . . 3")
+      if other_party.party in claim.ds:
+        other_party.party.is_cross_d = True
+        other_party.party.party_types.appendObject()
+        other_party.party.party_types[-1].name.text = str("Cross-Defendant")
+        other_party.party.party_types[-1].db_read()
+  log("crossclaim = True")
+  crossclaim = True
+---
+question: |
+  How many cross claims are there?
+fields:
+  - Number: case.cross_claims.target_number
+    datatype: integer
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+sets: response_gatherer1
+code: |
+      case.rrfps.prepopulated
+      case.rrfps.gather()
+      case.rrogs.prepopulated
+      case.rrogs.gather()
+      case.rrfas.prepopulated
+      case.rrfas.gather()
+      response_gatherer1=True
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+sets: response_gathererX
+code: |
+      if len(case.rrfps):
+        case.rrfps.request_ordinal
+        case.rrfps.prior_requests_total
+      if len(case.rrogs):
+        case.rrogs.request_ordinal
+        case.rrogs.prior_requests_total
+      if len(case.rrfas):
+        case.rrfas.request_ordinal
+        case.rrfas.prior_requests_total
+      response_gathererX=True
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+sets: response_gatherer2
+code: |
+  log("response_gatherer2 . . . 1")
+  if len(case.rrfps):
+    case.draft = 'Discovery Response'
+    case.rrfps.edited
+    log("response_gatherer2 . . . 2")
+  log("response_gatherer2 . . . 3")
+  response_gatherer2=True
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+sets: response_gatherer3
+code: |
+  log("response_gatherer3")
+  if len(case.rrogs):
+    case.rrogs.edited
+  response_gatherer3=True
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+sets: response_gatherer4
+code: |
+  log("response_gatherer4")
+  if len(case.rrfas):
+    case.rrfas.edited
+  response_gatherer4=True
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+sets: recievers
+code: |
+  for party in case.parties:
+      if party.party not in case.user_clientlist():
+        if len(case.parties) <=2:
+          party.party.is_recipient = True
+        else:
+          party.party.is_recipient
+      else:
+        party.party.is_recipient = False
+  recievers = True
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  % if case.draft=='RFP':
+  How many ${ case.destination_base() }s have you sent already (total)?
+  % else:
+  How many ${ case.destination_base() }s ${ case.recipients().did_verb('has') } sent already (total)?
+  % endif
+fields:
+  - no label: case.prior_requests
+    datatype: integer
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  How many RRFPs ${ case.recipients().did_verb('has') } sent already (total)?
+fields:
+  - no label: case.rrfps.prior_requests
+    datatype: integer
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  How many RRFAs ${ case.recipients().did_verb('has') } sent already (total)?
+fields:
+  - no label: case.rrfas.prior_requests
+    datatype: integer
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  How many RROGs ${ case.recipients().did_verb('has') } sent already (total)?
+fields:
+  - no label: case.rrogs.prior_requests
+    datatype: integer
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+
+  ${ case.doc_header() }
+
+subquestion: |
+  Which set of ${ case.draft }s is this?
+fields:
+  - no label: case.request_ordinal
+    choices:
+    - First
+    - Second
+    - Third
+    - Fourth
+    - Fifth
+    - Sixth
+    - Seventh
+    - Eighth
+    - Ninth
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+
+  ${ case.doc_header() }
+
+subquestion: |
+  Which set of RROGs is this?
+fields:
+  - no label: case.rrogs.request_ordinal
+    choices:
+    - First
+    - Second
+    - Third
+    - Fourth
+    - Fifth
+    - Sixth
+    - Seventh
+    - Eighth
+    - Ninth
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+
+  ${ case.doc_header() }
+
+subquestion: |
+  Which set of RRFPs is this?
+fields:
+  - no label: case.rrfps.request_ordinal
+    choices:
+    - First
+    - Second
+    - Third
+    - Fourth
+    - Fifth
+    - Sixth
+    - Seventh
+    - Eighth
+    - Ninth
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+
+  ${ case.doc_header() }
+
+subquestion: |
+  Which set of RRFAs is this?
+fields:
+  - no label: case.rrfas.request_ordinal
+    choices:
+    - First
+    - Second
+    - Third
+    - Fourth
+    - Fifth
+    - Sixth
+    - Seventh
+    - Eighth
+    - Ninth
+---
+question: |
+  What is the name of your old firm?
+fields:
+  - Old Firm: case.lawyers[i].lawyer.old_firm
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  ${ case.doc_header() }
+
+subquestion: |
+  What is the next attorney's name?
+fields:
+  - First name: case.lawyers[i].lawyer.name.first
+    required: False
+  - Middle initial: case.lawyers[i].lawyer.name.middle
+    required: False
+  - Last name: case.lawyers[i].lawyer.name.last
+    required: False
+---
+question: |
+  ${ case.doc_header() }
+
+subquestion: |
+
+  Which lawfirm does ${ case.lawyers[i].lawyer } work at?
+fields:
+  - no label: case.lawyers[i].lawyer.firm.name.text
+    code: |
+      case.list_lawfirms()
+validation code: |
+  case.lawyers[i].lawyer.firm.db_read()
+  case.lawyers[i].lawyer.db_save()
+---
+objects:
+  - case.lawyers[i].lawyer.firm: Lawfirm
+---
+question: |
+  ${ case.doc_header() }
+
+subquestion: |
+  Who is the next lawyer?
+fields:
+  - no label: case.lawyers[i].lawyer.id
+    required: False
+    choices:
+      code: |
+        Lawyer.show_all()
+  - Not Listed (add new lawyer): case.lawyers[i].lawyer.new_lawyer
+    datatype: yesno
+---
+question: |
+  ${ case.doc_header() }
+subquestion: |
+  Do any other parties have third party claims against ${ case.parties[i].party }?
+yesno: case.parties[i].threePPs.there_is_another
+---
+question: |
+  ${ case.doc_header() }
+subquestion: |
+  Which party or parties have third-party claims against ${ case.parties[i].party.name.full() }?
+fields:
+
+  - Third-Party Plaintiff: case.parties[i].threePPs[j]
+    datatype: object
+    choices:
+      case.get_3dp_candidates()
+#validation code: |
+#  case.parties[i].threePPs[j].id
+---
+code: |
+  for party in case.parties:
+    if party.party.party_type.name.text == "Third-Party Defendant":
+      party.threePPs.there_are_any = True
+    else:
+      party.threePPs.there_are_any = False
+  third_parties_claimed = True
+---
+objects:
+  - case.parties[i].threePPs: SCList
+---
+question: |
+
+subquestion: |
+  Which party or parties made the ${ ordinal(i) } cross claim?
+fields:
+  - Cross-Plaintiff: case.cross_claims[i].ps[j]
+    datatype: object
+    choices:
+      case.parties
+list collect: True
+---
+question: |
+
+subquestion: |
+  Which party or parties is the ${ ordinal(i) } cross claim made against?
+fields:
+  - Cross-Defendant: case.cross_claims[i].ds[j]
+    datatype: object
+    choices:
+      case.parties
+list collect: True
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+
+subquestion: |
+  Are there any cross-claims?
+yesno: case.cross_claims.there_are_any
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  ${ case.doc_header() }
+subquestion: |
+  What is ${ case.lawyers[i].lawyer.possessive('') } bar number?
+fields:
+  - Bar Number: case.lawyers[i].lawyer.bar_no
+---
+question: |
+  ${ case.doc_header() }
+
+subquestion: |
+  In which state is ${ case.lawyers[i].lawyer } barred?
+fields:
+  - State Bar: case.lawyers[i].lawyer.barred_in
+    code: |
+      states_list()
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  ${ case.doc_header() }
+
+
+subquestion: |
+  Besides ${ case.lawyers } are there any more attorneys involved?
+yesno: case.lawyers.there_is_another
+---
+objects:
+  - case.juris.courthouse: Address
+---
+question: |
+  What is the address for ${ case.juris.trial_court() } Court for the county of ${ case.juris.county.name.text }?
+fields:
+  - Street: case.juris.courthouse.address
+    address autocomplete: True
+  - Unit: case.juris.courthouse.unit
+    required: False
+  - City: case.juris.courthouse.city
+  - State: case.juris.courthouse.state
+    code: |
+      states_list()
+  - Zip: case.juris.courthouse.zip
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  ${ case.doc_header() }
+
+subquestion: |
+  What is ${ possessify(case.lawfirms[i].lawfirm, "") } address?
+fields:
+  - Address: case.lawfirms[i].lawfirm.address.address
+    address autocomplete: True
+  - Suite: case.lawfirms[i].lawfirm.address.unit
+    required: False
+  - City: case.lawfirms[i].lawfirm.address.city
+  - State: case.lawfirms[i].lawfirm.address.state
+  - Zip: case.lawfirms[i].lawfirm.address.zip
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  ${ case.doc_header() }
+
+subquestion: |
+  What is ${ possessify(case.parties[i].party, "") } address?
+fields:
+  - Address: case.parties[i].party.address.address
+    address autocomplete: True
+  - Suite: case.parties[i].party.address.unit
+    required: False
+  - City: case.parties[i].party.address.city
+  - State: case.parties[i].party.address.state
+  - Zip: case.parties[i].party.address.zip
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  ${ case.doc_header() }
+
+subquestion: |
+  Besides ${ case.lawfirms }, are there any more law firms involved in this case?
+yesno: case.lawfirms.there_is_another
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  ${ case.doc_header() }
+
+subquestion: |
+   What is next attorney's email address?
+fields:
+  - Email: case.lawyers[i].lawyer.email
+    datatype: combobox
+    code: |
+      Lawyer.show_all(case.lawfirms)
+validation code: |
+  case.lawyers[i].lawyer.db_save()
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  ${ case.doc_header() }
+
+subquestion: |
+  What is ${ case.lawyers[i].lawyer.possessive('') }bar number?
+fields:
+  - osb: case.lawyers[i].lawyer.osb
+    minlength: 6
+    maxlength: 6
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  ${ case.doc_header() }
+
+subquestion: |
+  About the ${ ordinal(i) } party.
+fields:
+  - First Name: case.parties[i].party.name.first
+  - Middle Initial: case.parties[i].party.name.middle
+    required: False
+  - Last Name: case.parties[i].party.name.last
+validation code: |
+  case.parties[i].party.db_save()
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  ${ case.doc_header() }
+
+subquestion: |
+  What is ${ case.parties[i].party.possessive('gender')}?
+fields:
+  - Gender: case.parties[i].party.gender.name.text
+    choices:
+      - male
+      - female
+      - other
+validation code: |
+  case.parties[i].party.gender.db_read()
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  ${ case.doc_header() }
+
+subquestion: |
+  About  the ${ ordinal(i) } party.
+fields:
+  - Name: case.parties[i].party.name.text
+validation code: |
+  case.parties[i].party.db_save()
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  ${ case.doc_header() }
+
+
+
+subquestion: |
+  What is the next party's designation in this matter?
+fields:
+  - Party Designation: case.parties[i].party.party_type.name.text
+    code: |
+      designations
+validation code: |
+  case.parties[i].party.party_type.db_read()
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  ${ case.doc_header() }
+
+subquestion: |
+
+  Which firm(s) represent ${ case.parties[i].party.party_typeparty_type } ${ case.parties[i].party }?
+
+
+fields:
+  - no label: case.parties[i].party.firms[j].name.text
+    code: |
+      case.list_lawfirms()
+validation code: |
+  case.parties[i].party.firms[j].db_read()
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+objects:
+  - case.parties[i].party.firms: SCList.using(object_type=Lawfirm, there_are_any=True, complete_attribute="complete_lawfirm")
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  ${ case.doc_header() }
+subquestion: |
+  Do any firms besides ${ case.parties[i].party.firms } represent ${ case.parties[i].party } in this matter?
+yesno: case.parties[i].party.firms.there_is_another
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  ${ case.doc_header() }
+subquestion: |
+  Are there any more parties besides ${ case.parties.indlpname() }?
+yesno: case.parties.there_is_another
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  What are ${ case.lawfirms[i].lawfirm.possessive('') } phone and fax numbers?
+fields:
+  - Phone: case.lawfirms[i].lawfirm.phone_number
+  - Fax: case.lawfirms[i].lawfirm.fax_number
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  What are ${ case.lawyers[i].lawyer.possessive('') } phone and fax numbers?
+fields:
+  - Phone: case.lawyers[i].lawyer.phone_number
+  - Fax: case.lawyers[i].lawyer.fax_number
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  Fill in your information:
+fields:
+  - Direct Phone: attorneyuser[i].phone
+  - Direct Fax: attorneyuser[i].fax_number
+---
+objects:
+  - case.cross_parties: SCPartyList
+---
+question: |
+  Are there any cross parties?
+yesno: case.cross_parties.there_are_any
+---
+question: |
+  Which parties are cross parties?
+fields:
+  - Party: case.cross_parties[i]
+    datatype: object
+    choices:
+    - case.parties
+list collect: True
+---
+objects:
+  - userdata2: DAStore
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+features:
+  centered: False
+  css: progressivedisclosure.css
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+imports:
+  - random
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+modules:
+  - .gvision
+  - .progressivedisclosure
+  - .cases36
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+include:
+  - case_rrfp_maker.yml
+  - case_the_og.yml
+  - case_generics.yml
+  - Lists.yml
+  - EULA.yml
+  - case_tables2.yml
+  - RFP_Maker.yml
+  - Algor.yml
+  - case_TM.yml
+  - case_claims.yml
+  - case_depo_notifier.yml
+  - style_guide.yml
+  - case_signature.yml
+  - case_faxer.yml
+  - case_concatenator.yml
+  - case_profile.yml
+  - case_exhibitor3.yml
+  - case_lien_satisfier.yml
+  - testsqlobjects.yml
+  - calendar.yml
+  - case_interest.yml
+  - case_cnb_requests.yml
+  - case_party_info.yml
+  - case_declaration_maker.yml
+  - case_CNB_request.yml
+  - ucji.yml
+  - case_LOR.yml

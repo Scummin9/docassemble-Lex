@@ -1,0 +1,47 @@
+modules:
+  - .legeteme1
+---
+mandatory: True
+code: | 
+  #from PIL import Image
+  an_image
+  continue_on
+  final_screen
+---
+code: |
+  if not processing_task.ready():
+    waiting_screen
+  continue_on= True
+---
+code: |
+  processing_task = background_action('process_files')
+---
+event: process_files
+code: |
+  best_threshold_for_binarizer = find_best_binarizer(an_image)
+  background_response_action('store_processed_file', the_file=best_threshold_for_binarizer)
+---
+event: store_processed_file
+code: |
+  final_document = action_argument('the_file')
+  background_response()
+  
+---
+event: waiting_screen
+question: Please wait . . .
+reload: True
+---
+event: final_screen
+question: |
+  Blacks is currently ${ str(len(BLACKS_DICTIONARY)) }.
+  The best threshold I could find was ${ str(final_document[0]) }, with a total of ${ str(final_document[1]) } foundlings.
+---
+question: | 
+  Blacks is currently ${ str(len(BLACKS_DICTIONARY)) }.
+  The best threshold I could find was ${ str(best_threshold_for_binarizer[0]) }, with a total of ${ str(best_threshold_for_binarizer[1]) } foundlings.
+---
+question: |
+  Upload Image.
+fields: 
+  - Image: an_image
+    datatype: file

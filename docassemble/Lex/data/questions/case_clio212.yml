@@ -1,0 +1,470 @@
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+---
+initial: True
+code: |
+  ZClio.authorize(ClioZ)
+  ZClio.authorize(ClioL)
+---
+mandatory: False
+question: |
+  #praetento_contact1
+  
+  
+  * ${ wild }
+
+---
+
+---
+code: |
+  wild = ClioZ.praetento_contact1(wildcard_contact, case) 
+---
+question: |
+  Wildcard search for title, email address, address, phone number, web site, instant messenger, custom fields, related matter name, or company name matching a given string.
+fields:
+  - Query: wildcard_contact
+---
+modules:
+  - .impetra_clio11
+---
+imports: 
+  - math
+---
+question: |
+  # Type in a client name to search for a matter:  
+  
+  
+  Search for matter by the display_number, number or description matching a given string, as well as the first_name, last_name or name of the associated client.  
+fields:
+  - client name: qmaterial
+---
+only sets: got_matter_id
+code: |
+  existing_fields
+  needed_ids
+  added_needed_ids
+  ClioZ.on_failure = 'raise'
+  quaeroo = qmaterial.strip().lower()
+  alien_matter = ClioZ.quaero_material(str(quaeroo), case)
+  got_matter_id = True
+---
+code: |
+  case.clio_matter_customs = ['doi', 'sol', 'docket_number', 'jurisdiction', 'division', 'district', 'county', 'state', 'claims']
+  case.clio_contact_customs = ['gender', 'is_lawyer', 'is_party', 'is_lawfirm', 'party_type', 'represents', 'caption_type', 'caption_text', 'firms', 'party_type', 'bar_number', 'state_bar', 'dba', 'trust']
+---
+code: |
+  impetra_existing = ClioZ.identify_custom_aliens()
+  case.matter_ids_dict = impetra_existing[0]
+  #{‘doi’: 8318884, ‘sol’: 8318899, ‘number’: 8318914, ‘jurisdiction’: 8318929, ‘division’: 8318944, ‘district’: 8318959, ‘county’: 8318974, ‘state’: 8318989} 
+  case.contact_ids_dict = impetra_existing[1]
+  #{‘is_lawyer’: 8235139, ‘is_party’: 8235154, ‘caption_type’: 8278564, ‘caption_text’: 8278579, ‘firms’: 8278594, ‘represents’: 8278834, ‘designation’: 8286979, ‘gender’: 8307904, ‘is_lawfirm’: 8319004, ‘party_type’: 8319709} 
+  case.all_existing_fieldnames = impetra_existing[2]
+  #[‘is_lawyer’, ‘is_party’, ‘caption_type’, ‘caption_text’, ‘firms’, ‘represents’, ‘designation’, ‘gender’, ‘doi’, ‘sol’, ‘number’, ‘jurisdiction’, ‘division’, ‘district’, ‘county’, ‘state’, ‘is_lawfirm’, ‘party_type’] 
+  existing_fields = True
+---
+only sets: needed_ids
+code: |
+  case.need_matter_field_ids = []
+  case.need_contact_field_ids = []
+  case.need_matter_field_ids.clear()
+  case.need_contact_field_ids.clear()
+  for xx in case.clio_matter_customs:
+    if xx not in case.all_existing_fieldnames:
+      case.need_matter_field_ids.append(str(xx))
+  for xx in case.clio_contact_customs:
+    if xx not in case.all_existing_fieldnames:
+      case.need_contact_field_ids.append(str(xx))
+  needed_ids = True
+---
+only sets: added_needed_ids
+code: |
+  for xx in case.need_matter_field_ids: 
+    added_m_field = ClioZ.post_custom_field(str(xx), case)
+    case.matter_ids_dict[str(xx)] = added_m_field['id']
+  for xx in case.need_contact_field_ids: 
+    added_c_field = ClioZ.post_custom_field(str(xx), case)
+    case.contact_ids_dict[str(xx)] = added_c_field['id']
+  added_needed_ids = True
+---
+objects: 
+  - case.customs: SCList
+---
+question: | 
+  whats the DOI?
+fields:
+  - Date: case.doi 
+    datatype: date
+---
+question: |
+  ${ case.doc_header() }  
+subquestion: | 
+  What is the Case Number?
+fields:
+  - Case No: case.docket_number
+---
+objects: 
+  - ZClio: ClioAuth.using(url_args=url_args)
+  - ClioZ: ClioZed
+  - ClioL: ClioLed
+---
+only sets: party_hard3
+code: |
+  for firm in case.lawfirms:
+    for party in case.parties: 
+      for law in party.firms:
+        if law.name.text == firm.name.text:
+          law = firm
+  party_hard3 = True
+---
+only sets: party_hard1
+code: | 
+ for party in case.parties:
+   if party.is_alien == True:
+     party.firms.clear()
+     if party.is_client is not None and party.is_client == True:
+       party.firms.appendObject()
+       party.firms[-1].name.text = case.lawfirms[0].name.text
+   for lawyer in case.lawyers[int(housechairs):]:
+     if lawyer.is_alien == True:
+       if lawyer.represents is not None and lawyer.represents != '':
+           if party.name.full() in lawyer.represents:
+             if lawyer.firm is not None and lawyer.firm.name.text is not None:
+               for firm in case.lawfirms[1:]:
+                 if firm.name.text == lawyer.firm.name.text:
+                   party.firms.appendObject()
+                   party.firms[-1].name.text = firm.name.text
+   if party.firms.number_gathered():
+     party.firms.there_is_another = False
+     party.firms.gathered = True
+ party_hard1 = True
+---
+only sets: party_hard2
+code: | 
+  case.lawfirms.clear()
+  case.lawfirms[0] = userfirm.copy_deep('case.lawfirms[0]')
+  party_hard2 = True
+---
+only sets: onetwostep
+code: |
+  got_matter_id 
+  hatch_case(alien_matter, case)
+  logger = 0
+  onetwostep = True
+---
+only sets: fun_party
+code: |
+  for party in case.parties: 
+    if case.lawfirms[0].name.text in comma_list(party.firms):
+      party.is_client = True
+  search_party
+  alien_eyeballs
+  alien_eyes
+  alien_lazers
+  pick_up_hitchhikers
+  fun_party = True
+---
+only sets: alien_eyeballs
+code: |
+  for xxx in case.parties:
+    if not xxx.is_alien:
+      if not xxx.eyed:
+        ix = ClioZ.facio_contact(xxx)
+        alien_id(xxx, ix)
+  alien_eyeballs = True
+---
+sets: search_party
+code: |
+  for party in case.parties:
+    if not party.is_alien:
+      party.eyed = ClioZ.praetento_contact(party.name.full(), case)
+  search_party = True
+---
+only sets: alien_eyes
+code: |
+  for party in case.parties:
+    if not party.is_alien:
+      if party.eyed:
+        party.lazerbeams = []
+        party.lazerbeams.clear()
+        for xy in party.eyed:
+          if xy.clio_type == 'Person':
+            if xy.email is not None:
+              if xy.name.middle is not None and xy.name.middle != '':
+                xy.flare = {xy.id: str(xy.name.first + ' ' + xy.name.middle + ' ' + xy.name.last + ' -- Person -- ' + xy.email + ' -- ' + str(xy.id))}
+              else:
+                xy.flare = {xy.id: str(xy.name.first + ' ' + xy.name.last + ' -- Person -- ' + xy.email + ' -- ' + str(xy.id))}
+            else:
+              xy.flare = {xy.id: str(xy.name.first + ' ' + xy.name.last + ' -- Person -- ' + str(xy.id))}
+          else: 
+            if xy.address is not None:
+              xy.flare = {xy.id: str(xy.name.text + ' -- Company -- ' + xy.address.city + ', ' + xy.address.state + ' -- ' + str(xy.id))}
+            else:
+              xy.flare = {xy.id: str(xy.name.text + ' -- Company -- ' + ' -- ' + str(xy.id))}
+          party.lazerbeams.append(xy.flare)
+        party.lazerbeams.append({'xenoo': str("Save " + party.name.full() + " as a New Contact in Clio")})
+  alien_eyes = True
+---
+only sets: alien_lazers
+code: | 
+  for party in case.parties:
+    if not party.is_alien:
+      if party.eyed:
+        party.id
+  alien_lazers = True
+---
+only sets: pick_up_hitchhikers
+code: |
+  for xxx in case.parties:
+    if not xxx.is_alien:
+      if xxx.eyed:
+        if xxx.id is not None:
+          if  xxx.id == 'xenoo':
+            ix = ClioZ.facio_contact(xxx)
+            alien_id(xxx, ix)
+          else:
+            ix = ClioZ.quaeroo(case, xxx)
+            body_snatch_party(xxx, ix)
+  pick_up_hitchhikers = True
+---
+field: case.parties[i].id
+question: |
+  Clio has
+  % if len(case.parties[i].lazerbeams) <=2:
+  a contact with a name similar
+  % else:
+  some contacts with similar names
+  % endif
+  to ${ case.parties[i] }. What do you want to do?
+buttons:
+  code: |
+    case.parties[i].lazerbeams
+---
+only sets: fun_law
+code: |
+  search_law
+  law_eyeballs
+  alien_arms
+  law_lazers
+  hitchhiker_case.lawyers
+  fun_law = True
+---
+only sets: fun_lawfirm
+code: |
+  search_law1
+  law_eyeballs1
+  alien_arms1
+  law_lazers1
+  hitchhiker_case.lawyers1
+  fun_lawfirm = True
+---
+sets: law_eyeballs
+code: |
+  for xxx in case.lawyers[int(housechairs):]:
+    if not xxx.is_alien:
+      if not xxx.eyed:
+        ix = ClioZ.facio_contact(xxx)
+        alien_id(xxx, ix)
+  law_eyeballs = True
+---
+only sets: law_eyeballs1
+code: |
+  for xxx in case.lawfirms[1:]:
+    if not xxx.is_alien:
+      if not xxx.eyed:
+        ix = ClioZ.facio_contact(xxx)
+        alien_id(xxx, ix)
+  law_eyeballs1 = True
+---
+sets: search_law
+code: |
+  for party in case.lawyers[int(housechairs):]:
+    if not party.is_alien:
+      party.eyed = ClioZ.praetento_contact1(party.name.full(), case, "Person")
+  search_law = True
+---
+sets: search_law1
+code: |
+  for party in case.lawfirms[1:]:
+    if not party.is_alien:
+      party.eyed = ClioZ.praetento_contact1(party.name.full(), case, "Company")
+  search_law1 = True
+---
+only sets: alien_arms
+code: |
+  for party in case.lawyers[int(housechairs):]:
+    if not party.is_alien:
+      if party.eyed:
+        party.lazerbeams = []
+        party.lazerbeams.clear()
+        for xy in party.eyed:
+          lazerlist = []
+          lazerlist.clear()
+          lazerlist.append(str(xy.name.first + ' '))
+          if xy.name.middle is not None and xy.name.middle != '':
+            lazerlist.append(str(xy.name.middle + ' '))
+          lazerlist.append(str(xy.name.last + ' -- '))
+          if xy.email is not None:
+            lazerlist.append(str(xy.email + ' -- '))
+          if xy.address is not None:
+            lazerlist.append(str(str(str(xy.address.address + ', ') if xy.address.address is not None else '') + str(str(xy.address.city + ', ') if xy.address.city is not None else '') + str(str(xy.address.state + ' ') if xy.address.state is not None else '')  + str(str(xy.address.zip + ' -- ' ) if xy.address.zip is not None else '')))
+          if xy.is_lawyer is not None and xxx.is_lawyer == True:
+            lazerlist.append('Lawyer')
+          else:
+            lazerlist.append('Person')
+          xy.flare = {xy.id: str(''.join(lazerlist))}
+          party.lazerbeams.append(xy.flare)
+        party.lazerbeams.append({'xenoo': str("Save " + party.name.full() + " as a New Contact in Clio")})
+  alien_arms = True
+---
+only sets: alien_arms1
+code: |
+  for party in case.lawfirms[1:]:
+    if not party.is_alien:
+      if party.eyed:
+        party.lazerbeams = []
+        party.lazerbeams.clear()
+        for xy in party.eyed:
+          if xy.address is not None:
+            if xy.is_lawfirm is not None and xy.is_lawfirm == True:
+              xy.flare = {xy.id: str(xy.name.text  + ' -- ' + xy.address.city + ', ' + xy.address.state + ' -- Law Firm')}
+            else:
+              xy.flare = {xy.id: str(xy.name.text  + ' -- ' + xy.address.city + ', ' + xy.address.state + ' -- Company')}
+          else:
+            if xy.is_lawfirm == True:
+              xy.flare = {xy.id: str(xy.name.text  + ' -- Law Firm')}
+            else:
+              xy.flare = {xy.id: str(xy.name.text + ' -- Company')}
+          party.lazerbeams.append(xy.flare)
+        party.lazerbeams.append({'xenoo': str("Save " + party.name.full() + " as a New Contact in Clio")})
+  alien_arms1 = True
+---
+only sets: law_lazers
+code: | 
+  for party in case.lawyers[int(housechairs):]:
+    if not party.is_alien:
+      if party.eyed:
+        party.id
+  law_lazers = True
+---
+only sets: law_lazers1
+code: | 
+  for party in case.lawfirms[1:]:
+    if not party.is_alien:
+      if party.eyed:
+        party.id
+      
+  law_lazers1 = True
+---
+event: balls
+question: |
+
+  
+  
+  * ${ ix['firm'] }
+  
+  
+  * ${ ix.firm }
+  
+  
+  * ${ ix.firm.name }
+    
+    
+  * ${ ix.firm.name.text }
+---
+only sets: hitchhiker_case.lawyers
+code: |
+  for xxx in case.lawyers[int(housechairs):]:
+    if not xxx.is_alien:
+      if xxx.eyed:
+        if xxx.id is not None:
+          if  xxx.id == 'xenoo':
+            ix = ClioZ.facio_contact(xxx)
+            alien_id(xxx, ix)
+            xxx.clio_type = 'Person'
+          else:
+            ix = ClioZ.quaeroo(case, xxx)
+            body_snatch_lawyer(xxx, ix)
+            #boobs
+            if hasattr(xxx.firm.name, 'text'):
+              if xxx.firm.name.text not in comma_list(case.lawfirms):
+                case.lawfirms.appendObject()
+                #xxx.firm = case.lawfirms[-1]
+                case.lawfirms[-1].name.text = xxx.firm.name.text
+                if xxx.firm.address.address is not None and xxx.firm.address.address !='':
+                  case.lawfirms[-1].address.address = xxx.firm.address.address
+                if xxx.firm.address.city is not None and xxx.firm.address.city !='':
+                  case.lawfirms[-1].address.city = xxx.firm.address.city
+                if xxx.firm.address.state is not None and xxx.firm.address.state !='':
+                  case.lawfirms[-1].address.state = xxx.firm.address.state
+                if xxx.firm.address.zip is not None and xxx.firm.address.zip !='':
+                  case.lawfirms[-1].address.zip = xxx.firm.address.zip
+                if xxx.firm.address.id is not None and xxx.firm.address.id !='':
+                  case.lawfirms[-1].address.id = xxx.firm.address.id
+                case.lawfirms[-1].id = xxx.firm.id
+                newfirm = ClioZ.quaeroo(case, case.lawfirms[-1])
+                alien_id(case.lawfirms[-1], newfirm)
+                xxx.firm = case.lawfirms[-1]
+              else:
+                for firm in case.lawfirms:
+                  if xxx.firm.name.text == firm.name.text:
+                    
+                    if xxx.firm.address.address is not None and xxx.firm.address.address !='':
+                      firm.address.address = xxx.firm.address.address
+                    if xxx.firm.address.city is not None and xxx.firm.address.city !='':
+                      firm.address.city = xxx.firm.address.city
+                    if xxx.firm.address.state is not None and xxx.firm.address.state !='':
+                      firm.address.state = xxx.firm.address.state
+                    if xxx.firm.address.zip is not None and xxx.firm.address.zip !='':
+                      firm.address.zip = xxx.firm.address.zip
+                    if xxx.firm.address.id is not None and xxx.firm.address.id !='':
+                      firm.address.id = xxx.firm.address.id
+                    firm.id = xxx.firm.id
+                    xxx.firm = firm
+                    newfirm = ClioZ.quaeroo(case, firm)
+                    alien_id(firm, newfirm)
+                    
+  hitchhiker_case.lawyers = True
+---
+only sets: hitchhiker_case.lawyers1
+code: |
+  for xxx in case.lawfirms[1:]:
+    if not xxx.is_alien:
+      if xxx.eyed:
+        if xxx.id is not None:
+          if  xxx.id == 'xenoo':
+            ix = ClioZ.facio_contact(xxx)
+            alien_id(xxx, ix)
+          else:
+            ix = ClioZ.quaeroo(case, xxx)
+            body_snatch_lawfirm(xxx, ix)
+  hitchhiker_case.lawyers1 = True
+---
+event: boobs
+question: | 
+  ${ ix }
+---
+field: case.lawyers[i].id
+question: |
+  Clio has
+  % if len(case.lawyers[i].lazerbeams) <=2:
+  a contact with a name similar
+  % else:
+  some contacts with similar names
+  % endif
+  to ${ case.lawyers[i] }. What do you want to do?
+buttons:
+  code: |
+    case.lawyers[i].lazerbeams
+---
+field: case.lawfirms[i].id
+question: |
+  Clio has
+  % if len(case.lawfirms[i].lazerbeams) <=2:
+  a contact with a name similar
+  % else:
+  some contacts with similar names
+  % endif
+  to ${ case.lawfirms[i] }. What do you want to do?
+buttons:
+  code: |
+    case.lawfirms[i].lazerbeams
+---

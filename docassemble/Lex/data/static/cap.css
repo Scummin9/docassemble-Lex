@@ -1,0 +1,8 @@
+td:not(:first-child) {
+    border-left: 1px solid black;
+  }
+td:not(:last-child) {
+	border-right: 1px solid black;
+	/* margin-right: -1px; */
+	border-bottom: 1px solid black;
+}

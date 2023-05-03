@@ -1,0 +1,40 @@
+modules:
+  - .legeteme1
+---
+question: |
+  Upload your text:
+fields:
+  - RFP: text_w_cites
+    datatype: file
+---
+code: |
+      request_getter = ocr_file_in_background(text_w_cites)
+---
+mandatory: True
+code: |
+  uncited = populabantur_bluebook_cites(text_w_cites)
+  docfile
+---
+mandatory: False
+code: |
+  request_getter
+  if not request_getter.ready(): 
+    wait 
+  else:
+    uncited = get_jury_instructions_9cir(request_getter) 
+    docfile
+---
+event: docfile
+question: |
+  ${ uncited }
+---
+question: |
+  To start your case,
+  [download your doc]
+ 
+  [download your doc]: ${ uncited.url_for(temporary=True) }
+---
+event: wait
+question: |
+  Relax and let the machine work its magic. This screen will reload when the requests are ready.
+reload: 10

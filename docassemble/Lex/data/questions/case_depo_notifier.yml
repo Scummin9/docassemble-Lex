@@ -1,0 +1,52 @@
+question: |
+  Will this be a PMK depo?
+yesno: case.pmk
+---
+question: |
+  Do you want to depose any staff members who witnessed the incident?
+yesno: case.staff_witness_depo
+---
+question: |
+  Will the depo be conducted remotely?
+yesno: case.remote_depo
+---
+objects:
+  - case.depo_location: SCPerson
+  - case.court_reporter: SCPerson
+---
+question: |
+  Where will the depo take place?
+fields:
+  - Location: case.depo_location.name.text
+    #default: case.user_firm.name.text
+  - Street: case.depo_location.address.address
+    #default: case.user_firm.address.address
+    address autocomplete: True
+  - Unit: case.depo_location.address.unit
+    #default: case.user_firm.address.unit
+    required: False
+  - City: case.depo_location.address.city
+    #default: case.user_firm.address.city
+  - State: case.depo_location.address.state
+    #default: case.user_firm.address.state
+    code: |
+      states_list()
+  - Zip: case.depo_location.address.zip
+    #default: case.user_firm.address.zip
+---
+question: |
+  Who will be the court reporeter for the depo?
+fields:
+  - Name: case.court_reporter.name.text
+    default: TBD
+  - Phone: case.court_reporter.phone
+    required: False
+---
+question: |
+  What date do you want to notice for the depo?
+fields:
+  - Date: case.proposed_depo_date
+    datatype: date
+  - Time: case.proposed_depo_time
+    datatype: time
+    required: False

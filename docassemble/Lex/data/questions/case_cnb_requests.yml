@@ -1,0 +1,72 @@
+---
+objects:
+  - clients: SCList.using(object_type=SCIndividual, there_are_any=True)
+---
+question: |
+  What is ${ case.providers[i].possessive("") }address?
+fields:
+  - Street Address: case.providers[i].address.address
+    address autocomplete: True
+  - Unit: case.providers[i].address.unit
+    required: False
+  - City: case.providers[i].address.city
+  - State: case.providers[i].address.state
+    code: |
+      states_list()
+  - Zip: case.providers[i].address.zip
+---
+question: |
+  What is ${ possessify(case.providers[i], "") }specialty?
+fields:
+  - specialty: case.providers[i].specialty
+---
+question: |
+  What is the email address for ${ case.providers[i] }?
+fields:
+  - email: case.providers[i].email
+---
+question: |
+  What is the phone number for ${ case.providers[i] }?
+fields:
+  - Phone: case.providers[i].phone_number
+---
+question: |
+  What is the fax number for  ${ case.providers[i] }?
+fields:
+  - Fax: case.providers[i].fax_number
+    required: False
+---
+question: |
+  What is the next provider's name?
+fields:
+  - no label: case.providers[i].name.text
+validation code: |
+  case.providers[i].db_read()
+---
+objects:
+  - userlawyer: SCIndividual
+  - userlawfirm: SCPerson
+---
+question: |
+  Do you want to request expedited service?
+yesno: request_expedited
+---
+mandatory: True
+code: |
+  userlawyer.name.first = "Scott"
+  userlawyer.name.middle = "M"
+  userlawyer.name.last = "Cumming"
+  userlawyer.fax = "541-717-0001"
+  userlawyer.email = "scott@scottcumming.com"
+  userlawyer.phone = "541-241-4089"
+  userlawfirm.name.text = "Scott M Cumming, Attorney"
+  userlawfirm.address.address = "61 NW Oregon Avenue #428"
+  userlawfirm.address.unit = "Suite 103"
+  userlawfirm.address.city = "Bend"
+  userlawfirm.address.state = "Oregon"
+  userlawfirm.address.zip = "97703"
+---
+question: |
+  What is the fax number?
+fields:
+  - Fax: user.fax_number

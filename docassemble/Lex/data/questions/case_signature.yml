@@ -1,0 +1,196 @@
+---
+objects:
+  - sig_image: DAFile
+  - provider: SCPerson
+  - client: SCIndividual
+  - personal_representative: SCIndividual
+---
+modules:
+  - .extract
+---
+code: |
+  multi_user = True
+  mu1 = True
+---
+code: |
+  multi_user = True
+  signature = '(Your signature will go here)'
+  mu2 = True
+---
+code: |
+      #intro_seen
+      mu1
+      CNB_middle
+      adsignor = True
+---
+code: |
+      intro_seen
+      mu1
+      template_file
+      template_emailed
+      notified_of_url
+      mu2
+      agrees_to_sign
+      signature_reset
+      if signature_choice == 'manual':
+        signature = signature1
+      else:
+        signature = signature2
+        sig_image.initialize(extension="png")
+        sig_image.created = True
+        extract_writing(signature2.path(), sig_image.path())
+        confirm_sig
+      document_emailed
+      CNB_final
+      adsignor2 = True
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+question: |
+  Do you want to sign manually or upload a picture of your signature?
+field: signature_choice
+buttons:
+  - Sign Manually: manual
+  - Upload Signature: upload
+---
+code: |
+  notified_of_url = True
+  prevent_going_back()
+  force_ask('screen_with_link')
+---
+question: |
+  What is the signer's email?
+fields:
+  - email: client.email
+---
+event: screen_with_link
+question: |
+  Share this link with the signer.
+subquestion: |
+  Suggested content for e-mailing to the signer:
+
+  > I need you to sign a document.  You can
+  > sign it using a touchscreen or with a
+  > mouse.  To see the document and start
+  > the signing process, [click here].
+
+  [click here]: ${ interview_url() }
+---
+code: |
+  send_email(to=str(client.email), template=email_template2)
+  template_emailed = True
+---
+signature: signature1
+question: Sign your name
+---
+generic object: DAObject
+question: |
+  Please upload an image of the signature
+subquestion: |
+  Please make sure that the image has a white background and clear contrast
+fields:
+  - Signature: signature2
+    datatype: file
+    maximum image size: 2000
+---
+question: |
+  Please confirm that the signature appears correctly below:  
+  [BR]
+  ${ sig_image }
+
+continue button field: confirm_sig
+continue button label: Signature correct
+action buttons: 
+  - label: Upload different image
+    action: signature
+    color: success
+    placement: before
+---
+question: |
+  Do you agree to sign this document?
+subquestion: |
+  Click the document image below to read the document
+  before signing it.
+
+  ${ draft_document.pdf }
+field: agrees_to_sign
+continue button label: I agree to sign
+---
+attachment:
+  name: Document
+  filename: signed_document
+  variable name: draft_document
+  docx template file:
+    code: template_file
+---
+question: |
+  Collect an electronic signature
+subquestion: |
+  If you provide your e-mail address and upload a document,
+  you can get a link that you can give to someone, where
+  they can click the link, sign their name, and then the
+  signed document will be e-mailed to you.
+
+  The document you upload needs to be in .docx format.
+
+  In the place where you want the signature to be, you need to
+  include the word "signature" surrounded by double curly brackets.
+  For example:
+
+  > I swear that the above is true and correct.
+  >
+  > 
+  >
+  > Angela Washington
+
+  If you do not include "" in exactly this way,
+  a signature will not be inserted.
+field: intro_seen
+---
+sets: template_file
+question: |
+  Unauthorized access
+---
+if: user_has_privilege(['admin', 'developer', 'advocate'])
+question: |
+  Please upload the document you want to be signed.
+fields:
+  - Document: template_file
+    datatype: file
+    accept: |
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+---
+code: |
+  del signature
+  signature_reset = True
+---
+attachment:
+  name: Document
+  filename: signed_document
+  variable name: signed_document
+  valid formats:
+    - pdf
+  docx template file:
+    code: template_file
+---
+event: CNB_final
+prevent going back: True
+question: |
+  Here is your signed document for your records. A copy has been emailed to its sender.
+attachment code: signed_document
+---
+template: email_template
+subject: Signed document
+content: |
+  The attached document has been signed.
+---
+code: |
+  send_email(to="scott@scottcumming.com", template=email_template, attachments=signed_document.pdf)
+  document_emailed = True
+---
+template: email_template2
+subject: |
+  Please sign this document for me.
+content: |
+  You will be able to sign it using your phone's touchscreen.  To see the document and start the signing process, [click here]. 
+
+  [click here]: ${ interview_url() }

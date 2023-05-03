@@ -1,0 +1,1293 @@
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+#  - MVA.yml 
+#  - PIP.yml 
+#  - Premises_Liability.yml 
+---
+question: |
+  How many vehicles were involved?
+fields:
+  - Number: case.vehicles.target_number
+    datatype: integer
+---
+
+question: |
+  What claims involve ${ case.parties[i] }?
+fields:
+  - no label: case.parties[i].party.party.partyclaims[j]
+    code: |
+      case.claims
+list collect: True
+---
+objects: 
+  - case.parties[i].party.party.partyclaims: SCList.using(there_are_any=True)
+  - case.hazloc: Person
+---
+question: |
+  What is the address of the premises where ${ case.claims_premises_liability() } was injured? 
+fields:
+  - Street: case.premises.address.address
+    address autocomplete: True
+  - Unit: case.premises.address.unit
+    required: False
+  - City: case.premises.address.city
+  - Zip: case.premises.address.zip
+  - County: case.premises.address.county
+---
+question: |
+  What is the tax lot id# of the premises where ${ case.claims_premises_liability() } was injured? 
+fields:
+  - Tax Lot No.: case.premises.taxlot
+---
+objects:
+  - case.premises: SCPerson
+---
+code: |
+  case.premises.name.text = "The Property"
+---
+question: | 
+  The ${ capitalize(ordinal(i)) } Demand:
+fields: 
+  - no label: case.demand[i]
+    datatype: currency
+---
+question: | 
+  The ${ capitalize(ordinal(i)) } Offer:
+fields: 
+  - no label: case.offer[i]
+    datatype: currency
+---
+question: |
+  Was the demand for ${ case.demand[-1] } accepted? 
+noyes: case.offer.there_is_another
+---
+question: |
+  Was the offer of ${ case.offer[-1] } accepted? 
+noyes: case.demand.there_is_another
+---
+objects: 
+  - case.demand: SCList.using(object_type=Value, there_are_any=True)
+  - case.offer: SCList.using(object_type=Value, there_are_any=True)
+---
+question: |
+  Are there any past medical expenses resulting from this ${ case.incident }?
+yesno: case.economics.meds.there_are_any
+---
+question: |
+  What is the name of the ${ ordinal(i) } medical provider? And for whom was treatment provided?
+fields:
+  - Provider: case.economics.meds[i].name.text
+  - Patient: case.economics.meds[i].patient
+    code: | 
+      case.parties
+---
+question: |
+  What dates did ${ case.economics.meds[i].patient } receive treatment at ${ case.economics.meds[i] }
+fields:
+  - Date: case.economics.meds[i].visits[j].date
+    datatype: date
+list collect: True
+---
+question: |
+  For ${ possessify(case.economics.meds[i].patient, "") }treatment at ${ case.economics.meds[i] } on ${ case.economics.meds[i].visits[j].date }
+fields:
+  - Billed: case.economics.meds[i].visits[j].amount_billed
+    datatype: currency
+  - PIP: case.economics.meds[i].visits[j].paid_by_pip
+    datatype: currency
+  - Primary Health Insurance: case.economics.meds[i].visits[j].paid_by_primary_health_insurance
+    datatype: currency
+  - Secondary Health Insurance: case.economics.meds[i].visits[j].paid_by_secondary_health_insurance
+    datatype: currency
+  - Out of Pocket: case.economics.meds[i].visits[j].paid_out_of_pocket
+    datatype: currency
+  - Written Off: case.economics.meds[i].visits[j].was_written_off
+    datatype: currency
+---
+question: |
+  For ${ possessify(case.economics.meds[i].patient, "") }treatment at ${ case.economics.meds[i] } on ${ case.economics.meds[i].visits[j].date }
+fields:
+  - Chart Note Summary: case.economics.meds[i].visits[j].chart_note
+    input type: area
+    rows: 10
+  - Type of Care: case.economics.meds[i].visits[j].clinician.type
+    input type: combobox
+    code: |
+      sorted(careproviders)
+    required: False
+  - Clinician First Name: case.economics.meds[i].visits[j].clinician.name.first
+    required: False
+  - Clinician Last Name: case.economics.meds[i].visits[j].clinician.name.last
+    required: False
+  - Clinician Suffix: case.economics.meds[i].visits[j].clinician.name.suffix
+    required: False
+    input type: combobox
+    code: |
+      suffixes
+  - Clinician Gender: case.economics.meds[i].visits[j].clinician.gender
+    required: False
+    choices: 
+      - male
+      - female
+      - other
+  - Chart Note Relates Injuries to Incident?: case.economics.meds[i].visits[j].clinician.att
+    datatype: yesnoradio
+    required: False
+---
+code: |
+  for party in case.parties:
+    for provider in case.economics.meds:
+      if str(party.name.full()) == str(provider.patient):
+        provider.patient = party
+---
+question: |
+  Has ${ parties[i].party_type.name.text } ${ parties[i] } worked at all for at ${ case.parties[i].party.party.partylost_wages[j].job } since the ${ case.incident }?
+yesno: case.parties[i].party.party.partylost_wages[j].has_worked
+---
+question: |
+  Did ${ parties[i].party_type.name.text } ${ parties[i] } try to work at ${ case.parties[i].party.party.partylost_wages[j].job } after the ${ case.incident } before stopping or reducing work?
+yesno: case.parties[i].party.party.partylost_wages[j].tried_work
+---
+question: |
+  Since ${ parties[i].party_type.name.text } ${ parties[i] }  stopped working at ${ case.parties[i].party.party.partylost_wages[j].job }, has ${ parties[i].party_type.name.text } ${ parties[i] } returned to work for ${ case.parties[i].party.party.partylost_wages[j].job } at full capacity?
+yesno: case.parties[i].party.party.partylost_wages[j].has_returned
+---
+question: |
+  When did ${ parties[i].party_type.name.text } ${ parties[i] } stop or reduce work at ${ case.parties[i].party.party.partylost_wages[j].job } after the ${ case.incident }?
+fields:
+  - Date stopped: case.parties[i].party.party.partylost_wages[j].datestopped
+    datatype: date
+---
+question: |
+  When did ${ parties[i].party_type.name.text } ${ parties[i] } return to work at ${ case.parties[i].party.party.partylost_wages[j].job } at full capacity?
+fields:
+  - Date returned: case.parties[i].party.party.partylost_wages[j].datereturned
+    datatype: date
+---
+question: |
+  Does ${ parties[i].party_type.name.text } ${ parties[i] } have any periods of lost wages because of this ${ case.incident }?
+yesno: case.parties[i].party.party.partylost_wages.there_are_any
+---
+question: |
+  What is the ${ ordinal(j) } job from which ${ parties[i].party_type.name.text } ${ parties[i] } has a period of lost wages as a result of this ${ case.incident }?
+fields:
+  - Date Plaintiff stopped: case.parties[i].party.party.partylost_wages[j].job
+    datatype: date
+---
+question: |
+  Plead Attorney Fees or Prejudgment Interest?
+fields:
+  - Attorney Fees: case.attorney_fees 
+    datatype: yesnoradio
+    default: False
+  - Prejudgment Interest: case.prej_interest
+    datatype: yesnoradio
+    default: False
+---
+question: |
+  Ask for punitive damages?
+fields:
+  - Punitive Damages: case.punitive_damages
+    datatype: yesnoradio
+    default: False
+---
+question: |
+  Which of ${ case.parties[i].party.party.partyparty_type.name.text } ${ possessify(case.parties[i], "") }body parts sustained any damage from this ${ case.incident }?
+fields:
+  - Body parts: case.parties[i].party.party.partydamage_parts[j]
+    input type: combobox
+    code: |
+      sorted(body_parts)
+list collect: True
+---
+question: |
+  Did ${ case.parties[i].party.party.partyparty_type.name.text } ${ case.parties[i] } have a thin skull at the time of injury?
+fields:
+  - Thin Skull Plaintiff: case.parties[i].party.party.partyis_thin_skull
+    datatype: yesnoradio
+    default: True
+---
+question: |
+  Which ${ case.adverse_parties().asnoun() } Requested the ${ ordinal (j) } DME of ${ case.parties[i].party.party.partyparty_type.name.text } ${ case.parties[i] }?
+fields:
+  - no label: case.parties[i].party.party.partydme[j].parties
+    datatype: checkboxes
+    choices: 
+      - case.adverse_parties()
+    minlength: 1
+---
+code: |
+  if len(case.adverse_parties()) == 1:
+    for index in range(len( case.parties[i].party.party.partydme)):
+       case.parties[i].party.party.partydme[index].parties = SCList(elements=[case.adverse_parties()[0]])
+---
+question: |
+  Besides the DME on 
+  % for dme in case.parties[i].party.party.partydme:
+    ${ dme.date } with ${ dme.quack },
+  % endfor
+  has ${ case.parties[i] } been subjected to any other DMEs?
+yesno: case.parties[i].party.party.partydme.there_is_another
+---
+question: |
+  Has any ${ case.adverse_parties()[0].party_type() } performed a DME on ${ case.parties[i].party.party.partyparty_type.name.text } ${ case.parties[i] }?
+yesno: case.parties[i].party.party.partydme.there_are_any
+---
+question: |
+  Did ${ case.parties[i].party.party.partyparty_type.name.text } ${ case.parties[i] } require surgery because of this ${ case.incident }?
+yesno: case.parties[i].party.party.partysurgery.there_are_any
+---
+question: |
+  Besides ${ case.parties[i].party.party.partycollateral_sources } have any other collateral sources paid for any of ${ case.parties[i].party.party.partyparty_type.name.text } ${ possessify(case.parties[i], "") }damages and costs from this ${ case.incident }?
+yesno: case.parties[i].party.party.partycollateral_sources.there_is_another
+---
+question: |
+  Have any collateral sources paid for any of ${ case.parties[i].party.party.partyparty_type.name.text } ${ possessify(case.parties[i], "") }damages and costs from this ${ case.incident }?
+yesno: case.parties[i].party.party.partycollateral_sources.there_are_any
+---
+question: |
+  What is the ${ ordinal(j) } collateral source?
+fields:
+  - Type of Source: case.parties[i].party.party.partycollateral_sources[j].name.text
+    input type: combobox
+    code: |
+      collateral_sources
+  - Insurer/Payor: case.parties[i].party.party.partycollateral_sources[j].insurer
+  - Lien Filed?: case.parties[i].party.party.partycollateral_sources[j].lien
+    datatype: yesno
+---
+question: |
+  How much has ${ case.parties[i].party.party.partycollateral_sources[j] } paid for medical care?
+fields:
+  - Amount Paid: case.parties[i].party.party.partycollateral_sources[j].paid
+    datatype: currency
+---
+question: |
+  Was ${ case.parties[i].party.party.partyparty_type.name.text } ${ possessify(case.parties[i], "") }surgery a fusion?
+yesno: case.parties[i].party.party.partysurgery[j].surgery_was_fusion
+---
+question: |
+  What body parts were operated on in ${ case.parties[i].party.party.partyparty_type.name.text } ${ possessify(case.parties[i], "") }${ ordinal(j) } surgery?
+fields: 
+  - Body Part ${ i + 1 }: case.parties[i].party.party.partysurgery[j].surgery_parts[x]
+    input type: combobox
+    code: |
+      sorted(body_parts)
+list collect: True
+---
+objects:
+  - case.parties[i].party.party.partysurgery: SCList.using(ask_number=True)
+  - case.parties[i].party.party.partysurgery[j].surgery_parts: SCList.using(there_are_any=True)
+---
+question: |
+  How many surgeries has ${ case.parties[i].party.party.partyparty_type.name.text } ${ case.parties[i] } had as a result of this ${ case.incident }?
+fields:
+  - Number of surgeries: case.parties[i].party.party.partysurgery.target_number
+    datatype: integer
+---
+question: |
+  Is ${ case.parties[i].party.party.partyparty_type.name.text } ${ case.parties[i] } medically stationary?
+fields:
+  - Medically Stationary: case.parties[i].party.party.partyis_medically_stationary 
+    datatype: yesnoradio
+    default: False
+---
+question: |
+  List the parts of ${ case.parties[i].party.party.partyparty_type.name.text } ${ possessify(case.parties[i], "") }body that were particularly susceptible to injury prior to this incident:
+fields:
+  - Body Part ${ i + 1 }: case.parties[i].party.party.partythin_skull_parts[j]
+    input type: combobox
+    code: |
+      sorted(body_parts)
+list collect: True
+---
+objects: 
+  - case.parties[i].party.party.partythin_skull_parts: SCList.using(there_are_any=True)
+---
+question: |
+  List all of ${ case.parties[i].party.party.partyparty_type.name.text } ${ possessify(case.parties[i], "") } diagnoses/injuries related to this incident:
+fields:
+  - Diagnosis ${ i + 1 }: case.parties[i].party.party.partydiagnosis[j]
+    input type: combobox
+    code: |
+      sorted(injuries3)
+list collect: True
+---
+question: |
+  What affirmative defenses has ${ case.parties[i].party.party.partyparty_type.name.text } ${ case.parties[i] } asserted?
+fields:
+  - Affirmative Defense: case.parties[i].party.party.partyaffirmative_defense[j]
+    input type: combobox
+    code: |
+      sorted(affirmative_defenses)
+list collect: True
+---
+question: |
+  Has ${ case.parties[i].party.party.partyparty_type.name.text } ${ case.parties[i] }  asserted any affirmative defenses?
+yesno: case.parties[i].party.party.partyaffirmative_defense.there_are_any
+---
+question: |
+  The piece of property or equipment that was in an unsafe condition:
+fields:
+  - Implement: case.negligent_implement
+    input type: combobox
+    code: |
+      implements
+---
+question: |
+  What alternative conduct would have prevented the incident from occuring?
+fields:
+  - Coulda, Shoulda, Woulda: case.nonnegligence[i]
+    input type: combobox
+    code: |
+      nonnegligent_conduct
+list collect: True
+
+---
+question: |
+  About ${ possessify(case.parties.the_ps(), '') }Premises Liability:
+fields:
+  - Type of Premises Liability: case.premises_li_type[i]
+    choices:
+    - premises_li_types
+list collect: True
+---
+question: |
+  About ${ possessify(case.parties.the_ps(), '') }Products Liability:
+fields:
+  - Type of Premises Liability: case.products_li_type[i]
+    code: |
+      products_li_types
+list collect: True
+---
+question: |
+  About ${ possessify(case.parties.the_ps(), '') }Negligence claim:
+fields:
+  - Type of Negligence: case.negligence_type[i]
+    code: |
+      negligence_types
+list collect: True
+
+---
+only sets: threefourstep
+code: |
+  parties.prepopulated
+  got_party_customs
+  parties.gendered
+  next_screen
+  clio_designated
+  cliolawyers
+  getcaseno
+  getdoi
+  party_hard2
+  party_hard1
+  party_hard3
+  clio_parties_collected
+  new_parties_created
+  threefourstep = True
+---
+code: |
+  if case.fell_here == 'sidewalk':
+    case.hazloc.name.text = 'The Sidewalk'
+  elif case.fell_here == 'parking lot':
+    case.hazloc.name.text = 'The Parking Lot'
+  elif case.fell_here == 'inside the bulding':
+    case.hazloc.name.text = 'The Building'
+  elif case.fell_here == 'the entryway to the building':
+    case.hazloc.name.text = 'The Entry'
+---
+objects:
+  - case.claims: SCList.using(there_are_any=True)
+  - case.negligence_type: SCList
+  - case.products_li_type: SCList
+---
+code: |
+  if 'Negligence' in case.claims:
+    case.negligence_type.there_are_any=True
+  else:
+    case.negligence_type.there_are_any=False
+  if 'Products Liability' in case.claims:
+    case.products_li_type.there_are_any=True
+  else:
+    case.products_li_type.there_are_any=False
+---
+question: |
+  List all of Plaintiff's claims here, and then click "Continue" to get started!
+fields:
+  - Claim ${ i+1 }: case.claims[i]
+    code: |
+      possclaims
+list collect: True
+---
+
+question: | 
+  Which defendant is the employee?
+fields:
+  - Employee: case.parties[i].party.party.partyemployee
+
+    datatype: object_checkboxes
+    choices:
+    - defendant
+
+---
+question: | 
+  Which defendant is the employer?
+fields:
+  - Employer: case.parties[i].party.party.partyemployer
+    datatype: object_checkboxes
+    choices:
+    - defendant
+---
+question: |
+  What factors were present in this case?
+fields:
+  - 911 failed to dispatch: case.dispatch_failure
+    datatype: yesnoradio
+    default: False
+
+---
+question: |
+  On what date was timely notice given to the Governmental Defendant (as required by ORS 30.275)?
+fields:
+  - Date of timely notice: case.date_of_notice
+    datatype: date
+
+---
+question: |
+  |  
+  |  
+  What agency was Defendant UNITED STATES OF AMERICA acting through?
+fields:
+  - Agency: case.agency
+  - Agency Initials: case.agency_initials
+---
+question: |
+  Did Defendant UNITED STATES OF AMERICA respond to the FTCA notice within six months of being served with it?
+yesno: case.usa_responded_to_notice
+---
+question: |
+  On what date did Defendant UNITED STATES OF AMERICA respond to the FTCA notice?
+fields:
+  - Date of Response: case.date_of_response
+    datatype: date
+---
+objects:
+  - case.animal: SCPerson
+  - case.prior_attack: SCList.using(object_type=Thing)
+---
+question: |
+  Did the ${ case.animal } show a viscious propensity in prior events?
+yesno: case.prior_attack.there_are_any
+---
+question: |
+  Was ${ case.animal_attacked()[i] } a minor?
+yesno: case.animal_attacked()[i].was_minor
+---
+question: |
+  Describe all prior events with the ${ case.animal }:
+fields:
+  - Description: case.prior_attack[i].name.text
+    input type: area
+    rows: 7
+list collect: True
+---
+question: |
+  Describe the facts of the attack that injured Plaintiff
+fields:
+  - Description: case.attack
+    input type: area
+    rows: 20
+---
+question: |  
+  Was Plaintiff left unsupervised with the ${ case.animal }?
+yesno: case.unsupervised
+---
+question: |
+  What kind of animal was it?
+fields:
+  - type: case.animal.name.text
+    hint: e.g., dog
+---
+question: |
+  What was the ${ case.animal.possessive('') }name?
+fields:
+  - name: case.animal_name
+---
+question: |
+  Who owned the ${ case.animal }?
+fields:
+  - owners: case.parties[i].party.party.partyowned_animal
+    datatype: object_checkboxes
+    choices:
+      - case.parties
+---
+question: |
+  Who did the ${ case.animal } attack?
+fields:
+  - owners: case.parties[i].party.party.partywas_attacked
+    datatype: object_checkboxes
+    choices:
+      - case.parties
+---
+question: |
+  Was the ${ case.animal } neutered?
+noyes: case.animal_wasnt_neutered
+---
+question: |
+  How much did the ${ case.animal } weigh approximately?
+fields:
+  - weight in pounds: case.animal_weight_in_pounds
+    datatype: integer
+---
+question: |
+  How many years old was the ${ case.animal }?
+fields:
+  - age in years: case.animal_years_of_age
+    datatype: integer
+---
+question: |
+  What breed was the ${ case.animal }?
+fields:
+  - breed: case.breed
+---
+question: |
+  Were ${ case.animal_owners() } renting the premises?
+yesno: case.rental
+---
+objects: 
+  - MVA: Address
+  - cross_street: Address
+  - MVA_street: Address
+  - MVA_streetd: Address
+  - driver: SCIndividual
+  - pulled_over: DAObject
+  - scene_photo: DAFileList.using(there_are_any=True)
+  - vehicle_photo: DAFileList.using(there_are_any=True)
+  - scene_photo_description: DAList.using(object_type=Thing, there_are_any=True)
+  - vehicle_photo_description: DAList.using(object_type=Thing, there_are_any=True)
+  - pulled_over_to: Thing
+---
+question: |
+  How many vehicles were involved?
+fields: 
+  - Number of Vehicles: vehicles_involved
+    datatype: integer
+---
+question: |
+  Did the vehicle roll before coming to a stop?
+yesno: vehicle_rolled
+---
+question: |
+  How many times did the vehicle roll before coming to a stop?
+fields: 
+  - Number of Rolls: number_of_rolls
+    datatype: integer
+---
+question: |
+
+  Upload any photos/google maps images of the scene, and add a description of the photo.
+fields:
+  - File: scene_photo[i]
+    datatype: file
+  - Description: scene_photo_description[i].name.text
+---
+question: |
+
+  Where did the MVA occur?
+fields:
+  - Street: case.MVA.address
+    address autocomplete: True
+  - City: case.MVA.city
+  - State: case.MVA.state
+    code: |
+      states_list()
+  - Zip: case.MVA.zip 
+  - County: MVA.county
+---
+question: |
+  Where were the vehicles at the time of impact?
+fields:
+  - locus of collision: case.MVA.locus
+    code: |
+      collision_locations
+---
+question: |
+  What type of collision was this?
+fields:
+  - locus of collision: case.MVA.type
+    code: |
+      crash_types
+---
+question: |
+
+  Do you have any more photos of the scene to upload?
+yesno: scene_photo.there_is_another
+---
+question: |
+
+  Upload any photos of the vehicles, and add a description of the photo.
+fields:
+  - File: vehicle_photo[i]
+    datatype: file
+  - Description: vehicle_photo_description[i].name.text
+---
+question: |
+
+  Do you have any more photos of the vehicles to upload?
+yesno: vehicle_photo.there_is_another
+---
+question: |
+
+  Do we know the Defnednat's BAC at or around the time of the incident (e.g., from the police report)?
+fields:
+  - BAC Known: bac_known
+    datatype: yesnoradio
+  - BAC: bac
+    datatype: range
+    min: .08
+    max: 1.48
+    default: .10
+    step: 0.001
+    show if:
+      variable: bac_known
+      is: True
+---
+question: |
+  Did ${ defendant } fail to yeild the right of way?
+yesno: failed_to_yield_right_of_way
+---
+question: |
+  What was ${ case.vehicles[i].w_owner_possessive() } doing at the moment of impact?
+fields:
+  - Year: case.vehicles[i].culpa[j]
+    code: |
+      mva_culpae
+list collect: True
+---
+question: |
+  What did ${ case.vehicles[i].w_owner_possessive() } crash into?
+fields:
+  - Year: case.vehicles[i].crashed_into[j]
+    code: |
+      crashed_intos
+---
+objects: 
+  - case.vehicles[i].culpa: SCList.using(there_are_any=True)
+  - case.vehicles[i].crashed_into: SCList.using(there_are_any=True)
+---
+question: |
+  About the ${ ordinal(i) } vehicle?
+fields:
+  - Year: case.vehicles[i].year
+    datatype: integer
+  - Make: case.vehicles[i].make
+  - Model: case.vehicles[i].model
+  - Type: case.vehicles[i].type
+    code: |
+      sorted(vehicle_types)
+  - Bullet: case.vehicles[i].was_bullet
+    datatype: yesno
+  - Target: case.vehicles[i].was_target
+    datatype: yesno
+---
+question: |
+  About the driver of the ${ case.vehicles[i].ymm } (i.e., the ${ ordinal(i) } vehicle)?
+fields:
+  - no label: case.vehicles[i].driver.existing_or_new
+    datatype: radio
+    default: Party
+    choices: 
+    - Party
+    - Nonparty
+  - Party: case.vehicles[i].driver
+    show if:
+      variable: case.vehicles[i].driver.existing_or_new
+      is: Party
+    datatype: object
+    choices: case.parties
+  - First Name: case.vehicles[i].driver.name.first
+    show if:
+      variable: case.vehicles[i].driver.existing_or_new
+      is: Nonparty
+  - Middle Name: case.vehicles[i].driver.name.middle
+    show if:
+      variable: case.vehicles[i].driver.existing_or_new
+      is: Nonparty
+  - Last Name: case.vehicles[i].driver.name.last
+    show if:
+      variable: case.vehicles[i].driver.existing_or_new
+      is: Nonparty
+  - Gender: case.vehicles[i].driver.gender
+    choices:
+    - male
+    - female
+    - other
+    show if:
+      variable: case.vehicles[i].driver.existing_or_new
+      is: Nonparty
+---
+question: |
+  Was ${ case.vehicles[i].w_owner_possessive() } a bullet or a target vehicle?
+fields:
+  - no label: case.vehicles[i].bullet_or_target
+    choices:
+    - bullet
+    - target
+---
+question: |
+
+  Which of the following applies to ${ case.parties[i].party.party.partypname() } at the time of the MVA?
+fields:
+  - no label: case.parties[i].party.party.partymva_status
+    choices:
+    - Driver
+    - Passenger
+    - Pedestrian
+---
+question: |
+  What street was ${ vehicles[i].w_owner_possessive() } driving on when the MVA occurred?
+fields:
+  - Street: case.vehicles[i].address.address
+    address autocomplete: True
+  - City: case.vehicles[i].address.city
+---
+question: |
+  What direction was ${ vehicles[i].w_owner_possessive() } traveling when the MVA occurred?
+fields:
+  - Direction of Travel: case.vehicles[i].dot
+    code: |
+      directions_of_travel
+---
+question: |
+
+  How/where was Plaintiff's vehicle struck?
+Fields:
+  - Defendant rear ended Plaintiff: rear_ended
+    datatype: yesnoradio
+    default: False
+  - Defendant crashed into Plaintiff from Passenger Side: t_bone_passenger
+    datatype: yesnoradio
+    default: False
+  - Defendant crashed into Plaintiff from Driver Side: t_bone_driver
+    datatype: yesnoradio
+    default: False
+  - Collision was head-on: head_on
+    datatype: yesnoradio
+    default: False
+  - Plaintiff crashed into Defendant: p_into_d
+    datatype: yesnoradio
+    default: False
+---
+question: |
+
+  Were any of the following factors present in this MVA?
+fields:
+  - Defendant was speeding: case.was_speeding
+    datatype: yesnoradio
+    default: False
+  - Defendant was DUI: case.dui
+    datatype: yesnoradio
+    default: False
+  - Hit and Run: case.hit_and_run
+    datatype: yesnoradio
+    default: False
+  - Defendant was later apprehended: case.later_apprehended
+    datatype: yesnoradio
+    default: False
+    show if:
+      variable: hit_and_run
+      is: True
+  - Plaintiff was taken to the hospital from the scene: case.taken_to_hospital
+    datatype: yesnoradio
+    default: False
+---
+question: |
+  Did Plaintiff and Defendant pull over after the collision?
+yesno: pulled_over
+---
+question: |
+  Where did they pull over to after the collision?
+fields:
+  - Location: pulled_over_to.name.text
+    input type: combobox
+    code: |
+      sorted(turn_outs)
+---
+question: |
+
+  Did Plaintiff say anything to Defendant after they pulled over?
+yesno: p_said
+---
+question: |
+
+  Did Defendant say anything to Plaintiff after the collision?
+yesno: d_said
+---
+question: |
+
+  What did Plaintiff say to Defendant after they pulled over?
+fields:
+  - Plaintiff said: p_said_text
+    input type: combobox
+    code: |
+      sorted(p_said)
+---
+question: |
+
+  What did Defendant say to Plaintiff after they pulled over?
+fields:
+  - Plaintiff said: d_said_text
+    input type: combobox
+    code: |
+      sorted(d_said)
+---
+question: |
+
+  Were any of the following factors present in this MVA?
+fields:
+  - Plaintiff's vehicle was pushed forward: pushed_forward
+    datatype: yesnoradio
+    default: False
+  - Plaintiff spun out after being hit: spun_out
+    datatype: yesnoradio
+    default: False
+---
+question: |
+
+  What was plaintiff doing at the time of the accident?
+fields: 
+  - stopped at a stop light: stop_light
+    datatype: yesnoradio
+    default: False
+  - stopped at a stop sign: stop_sign
+    datatype: yesnoradio
+    default: False
+---
+question: |
+
+  What was plaintiff doing at the time of the accident?
+fields: 
+  - turning right: turning_right
+    datatype: yesnoradio
+    default: False
+  - turning left: turning_left
+    datatype: yesnoradio
+    default: False
+  - driving through an intersection: through_intersection
+    datatype: yesnoradio
+    default: False
+  - merging left: merging_left
+    datatype: yesnoradio
+    default: False
+  - merging right: merging_right
+    datatype: yesnoradio
+    default: False
+---
+question: |
+
+  When and where was Defendant apprehended after the hit and run?
+fields: 
+  - City: apprehended_city
+  - State: apprehended_state
+    code: | 
+      states_list()
+  - When: apprehended_when
+    choices:
+    - later that day
+    - later that week
+    - weeks later
+    - months later
+---
+question: |
+
+  Cross street where MVA occured, at the intersection with ${ MVA_street }:
+fields:
+  - Cross street at intersection: cross_street.address
+    address autocomplete: True
+  - City: cross_street.city
+  - State: cross_street.state
+  - Zip: cross_street.zip
+  - County: cross_street.county
+---
+question: |
+
+  Did Defendant fail to stop? Or did Defendant go when he or she should have remained stopped?
+fields:
+  - Defendant failed to stop behind Plaintiff: failed_to_stop
+    datatype: yesnoradio
+    default: False
+  - Defendant started too soon: started_too_soon
+    datatype: yesnoradio
+    default: False
+---
+question: |
+
+  Did Defendant try to make a manuever when it wasn't safe to do so?
+fields:
+  - Defendant tried to turn in front of Plaintiff: tried_to_turn
+    datatype: yesnoradio
+    default: False
+  - Defendant tried to merge into Plaintiff's lane of travel: tried_to_merge
+    datatype: yesnoradio
+    default: False
+  - Defendant tried to reverse into Plaintiff or Plaintiff's vehicle: tried_to_reverse
+    datatype: yesnoradio
+    default: False
+---
+question: |
+  In what direction was Defendant turning when the collision occured?
+fields:
+  - Defendant tried to turn right: tried_turn_right
+    datatype: yesnoradio
+    default: False
+  - Defendant tried to turn left: tried_turn_left
+    datatype: yesnoradio
+    default: False
+---
+question: |
+  Which lane was ${ case.vehicle[i] } traveling in just before the collision?
+fields:
+  - Plaintiff's lane of travel: case.vehicle[i].lot
+    choices:
+    - left 
+    - middle
+    - right
+---
+question: | 
+  Where was Plaintiff's vehicle pushed from the force of the collision?
+fields:
+  - into an intersection: case.into_intersection
+    datatype: yesnoradio
+    default: False
+  - into an another vehicle: case.into_another_vehicle
+    datatype: yesnoradio
+    default: False
+  - off of road: case.off_of_road
+    datatype: yesnoradio
+    default: False
+  - and into: case.and_into
+    show if:
+      variable: case.off_of_road
+      is: True
+---
+question: |
+  Did ${ case.parties[i] } OWN the premises?
+subquestion: |
+  On any premises case, you always want to include the property owner, as their duty to inspect and maintain is non-delegable.
+yesno: case.parties[i].party.party.partyis_owner
+---
+question: |
+  Did ${ case.parties[i] } MANAGE the premises?
+subquestion: |
+  As in a property manager who may have been acting as the property owners agent at the time of the incident. While the property owner's duty to inspect and maintain is non-delegable, any known property managers should be included as a Defendant. 
+yesno: case.parties[i].party.party.partyis_premises_manager
+---
+question: |
+  Did ${ case.parties[i] } LEASE the premises?
+subquestion: |
+  If someone other than the property owner possessed and controled the property at the time of the incident, they should be included as a Defendant along with the property owner.
+yesno: case.parties[i].party.party.partyis_tt
+---
+question: |
+  Where did the ${ case.incident } occur?
+fields:
+  - Location: case.location_of_fall
+    choices:
+    - sidewalk
+    - parking lot
+    - inside the building
+    - the entryway to the building
+---
+code: |
+  if case.location_of_fall == 'sidewalk':
+    case.hazloc.name.text = 'The Sidewalk'
+  elif case.location_of_fall == 'parking lot':
+    case.hazloc.name.text = 'The Parking Lot'
+  elif case.location_of_fall == 'inside the bulding':
+    case.hazloc.name.text = 'The Building'
+  elif case.location_of_fall == 'the entryway to the building':
+    case.hazloc.name.text = 'The Entry'
+---
+question: |
+  Was there a building on the property?
+yesno: case.there_was_a_building
+---
+question: |
+  What type of building was on the property?
+fields:
+  - no label: case.building_type
+    datatype: combobox
+    choices:
+    - commercial
+    - residential
+---
+question: |
+  |  
+  |  
+  Which of Plaintiff's body parts were struck during the fall?
+fields:
+  - Plaintiff: case.bodyparts_struck[i]
+    code: |
+      body_parts
+list collect: True
+---
+question: | 
+
+  Where was the sidewalk located?
+fields:
+  - The sidewalk is in a parking lot: case.sidewalk_in_parkinglot
+    datatype: yesnoradio
+    default: False
+  - The sidewalk abutted the Property: case.sidewalk_abutted
+    datatype: yesnoradio
+    default: False
+---
+question: |
+  Are any of the following factors present in this case?
+fields:
+  - Plaintiff slipped on ice: case.conditions_were_icy
+    datatype: yesnoradio
+    default: False
+  - Plaintiff slipped on a foreign substance: case.there_was_a_foreign_substance
+    datatype: yesnoradio
+    default: False
+  - Plaintiff was injured by a third party or animal on the premises: case.third_party_prem
+    datatype: yesnoradio
+    default: False
+---
+question: | 
+  Are any of the following factors present in this case?
+subquestion: |
+  When an invitee sustains injury in a fall, the fact that the invitee fell, in and of itself, is insufficient to establish that the premises were  unreasonably dangerous. Rather, evidence of additional characteristics are necessary to present this issue to a jury. 
+  Such additional characteristics include, for example, inadequate lighting, a slippery floor, evidence of prior similar accidents, the presence of visual obstructions, whether the injury-producing condition was in an unexpected location, and whether and to what extent the invitee had prior experience or exposure to the alleged dangerous condition. 
+fields:
+  - Inadequate Lighting: case.hazloc_not_well_lit
+    datatype: yesnoradio
+    default: False
+  - Slippery Floor: case.floor_slippery
+    datatype: yesnoradio
+    default: False
+  - Prior Similar Incidents: case.similar_incidents
+    datatype: yesnoradio
+    default: False
+  - Visual Obstructions: case.visual_obstruction
+    datatype: yesnoradio
+    default: False
+  - Unexpected Location: case.unexpected_loc
+    datatype: yesnoradio
+    default: False
+  - Inexperienced Invitee: case.inexperienced_invitee
+    datatype: yesnoradio
+    default: False
+---
+question: | 
+  Are any of the following factors present in this case?
+fields:
+  - Premises Was Leased: case.premises.had_tt
+    datatype: yesnoradio
+    default: False
+  - Premises Was Managed: case.premises.had_managers
+    datatype: yesnoradio
+    default: False
+---
+question: |
+  What was ${ possessify(case.parties[i].party.party.partypname(), "") }business on the on the property when ${ case.parties[i].party.party.partypronoun_subjective() } was injured?
+fields: 
+  - no label: case.parties[i].party.party.partybusiness_on_premises
+    datatype: combobox
+    choices:
+    - customer
+    - employee
+---
+question: | 
+  Are any of the following factors present in this case?
+fields:
+  - The occupant placed the substance: case.parties[i].party.party.partyplaced_hazard
+    datatype: yesnoradio
+    default: False
+---
+question: |
+  Was the slipping hazard clear, and therefore difficult for Plaintiff to see and appreciate?
+fields:
+  - no label: case.foreign_substance_was_clear
+    datatype: yesnoradio
+    default: False
+---
+question: |
+  Was the snow compacted at the time of the incident (e.g., from foot traffic)?
+fields:
+  - no label: case.snow_was_compacted
+    datatype: yesnoradio
+    default: False
+---
+code: |
+  if case.conditions_were_icy:
+    if not scase.snow_was_compacted or case.freeze_thaw:
+      case.the_hazard = 'The Snow'
+    else:
+      case.the_hazard = 'The Ice'
+  elif case.elevation_difference:
+    case.the_hazard = 'The Elevation Difference'
+  elif case.there_was_a_foreign_substance:
+    case.the_hazard = str(case.user_hazard)
+  else:
+    case.the_hazard = 'The Hazard'
+---
+question: |
+  What was the substance? (use the definite article and first caps for style points! E.g., "The Banana Peel")
+fields:
+  - Substance: case.user_hazard
+---
+question: | 
+  Are any of the following factors present in this case?
+fields:
+  - People had complained to about ${ case.the_hazard }: case.people_complained
+    datatype: yesnoradio
+    default: False
+---
+question: | 
+  Are any of the following factors present in this case?
+fields:
+  - It snowed in the days leading up to the incident: case.it_snowed
+    datatype: yesnoradio
+    default: False
+---
+question: | 
+  Are any of the following factors present in this case?
+fields:
+  - It snowed on the day of the incident: case.snowed_doi
+    datatype: yesnoradio
+    default: False
+---
+question: | 
+  Are any of the following factors present in this case?
+fields:
+  - In the days leading up to the incident, it froze at night and thawed in the day: case.freeze_thaw
+    datatype: yesnoradio
+    default: False
+---
+question: | 
+  Are any of the following factors present in this case?
+fields:
+  - The incident occured at Night: case.at_night
+    datatype: yesnoradio
+    default: False
+---
+question: | 
+  Are any of the following factors present in this case?
+fields:
+  - The weather was overcast: case.it_was_overcast
+    datatype: yesnoradio
+    default: False
+---
+question: | 
+  Are any of the following factors present in this case?
+fields:
+  - ${ case.the_hazard } and/or ${ case.hazloc.name.text } was covered in shade: case.it_was_shaded
+    datatype: yesnoradio
+    default: False
+---
+question: | 
+  Are any of the following factors present in this case?
+fields:
+  - Elevation difference in sidewalk, creating a tripping hazard for Plaintiff: case.elevation_difference
+    datatype: yesnoradio
+    default: False
+---
+question: |
+  What caused the elevation difference in the sidewalk?
+fields:
+  - Cause of elevation difference: case.elevation_cause
+---
+code: |
+  if case.parties[i].party.party.partywas_invitee:
+    case.parties[i].party.party.partypclass = 'invitee'
+  elif case.parties[i].party.party.partywas_licensee:
+    case.parties[i].party.party.partypclass = 'licensee'
+  elif case.parties[i].party.party.partywas_trespasser:
+    case.parties[i].party.party.partypclass = 'trespasser'
+---
+question: |
+  What was ${ case.parties[i].party.party.partypnam() } on The Property for?
+fields:
+  - for . . .: case.parties[i].party.party.partylicensed_for 
+    hint: e.g., a birthday party
+---
+template: was_trespasser
+
+subject: | 
+  
+content: |
+      A trespasser is a person who enters or remains on premises in the possession of another without a privilege to do so, created by the possessor’s consent or otherwise.
+---
+template: was_licensee
+
+subject: | 
+  
+content: |
+      A licensee is a person who, with possessor’s permission, comes upon premises for licensee’s own purposes, often social.
+---
+template: was_pinvitee
+
+subject: | 
+  
+content: |
+      A visitor is a public invitee if
+      (1) the property owner expressly or impliedly leads the visitor to believe that the premises were intended to be used for the purpose that the visitor is pursuing and 
+      (2) the visitor’s use is not only with the owner’s acquiescence but is also in accord with the intention or design for which the premises were adapted and prepared.
+---
+template: was_binvitee
+
+subject: | 
+  
+content: |
+      A business invitee is one who comes upon the premises at the occupier’s invitation, express or implied, upon business which concerns the occupier. 
+      It proceeds upon the assumption that the economic advantage of plaintiff’s presence to the occupier imposes upon him the duty to use due care for plaintiff’s safety.
+---
+template: was_invitee
+
+subject: | 
+  
+content: |
+      (1) An invitee is either a public invitee or a business invitee. 
+      (2) A public invitee is a person who is invited to enter or remain on land as a member of the public for a purpose for which the land is held open to the public. 
+      (3) A business visitor is a person who is invited to enter or remain on land for a purpose directly or indirectly connected with business dealings with the possessor of the land.
+---
+question: |
+  Which of the following categories does ${ case.parties[i].party.party.partypname() } arguably fall into?
+fields:
+  - Invitee: case.parties[i].party.party.partywas_invitee
+    datatype: yesnoradio
+    default: False
+    note: |
+      ${ was_invitee }
+  - Business Invitee: case.parties[i].party.party.partywas_binvitee
+    datatype: yesnoradio
+    default: False
+    show if:
+      variable: case.parties[i].party.party.partywas_invitee
+      is: True
+    note: |
+      ${ was_binvitee }
+  - Public Invitee: case.parties[i].party.party.partywas_pinvitee
+    datatype: yesnoradio
+    default: False
+    show if:
+      variable: case.parties[i].party.party.partywas_invitee
+      is: True
+    note: |
+      ${ was_pinvitee }
+  - Licensee: case.parties[i].party.party.partywas_licensee
+    datatype: yesnoradio
+    default: False
+    note: |
+      ${ was_licensee }
+  - Trespasser: case.parties[i].party.party.partywas_trespasser
+    datatype: yesnoradio
+    default: False
+    note: |
+      ${ was_trespasser }
+---
+question: |
+  Has ${ case.parties[i] } responded to an RFA?
+yesno: case.parties[i].party.party.partyhas_responded_to_rfa
+  

@@ -1,0 +1,86 @@
+---
+continue button field: law_review3
+need: case.userfirm.lawyers.table
+table css class: table mytable
+question: |
+  The attorneys at your firm
+subquestion: |
+  ${ case.userfirm.lawyers.table }
+  
+  
+  ${ case.userfirm.lawyers.add_action() }
+---
+table: case.userfirm.lawyers.table
+rows: case.userfirm.lawyers
+columns:
+  - "": |
+      row_item.name.full()
+  - "": |
+      row_item.bar_no 
+  - "": |
+      row_item.email 
+edit:
+  - email
+---
+mandatory: True
+code: |
+  multi_user = True
+---
+question: |
+  Your Firm
+fields:
+  - Firm Name: case.userfirm.firm.name.text
+  - Address: case.userfirm.firm.address.address
+    address autocomplete: True
+  - Suite: case.userfirm.firm.address.unit
+    required: False
+  - City: case.userfirm.firm.address.city
+  - State: case.userfirm.firm.address.state
+  - Zip: case.userfirm.firm.address.zip
+continue button field: firm_name3
+validation code: |
+  case.userfirm.firm.db_save()
+---
+question: |
+  Besides ${ case.userfirm.lawyers }, are there any others at your firm?
+yesno: case.userfirm.lawyers.there_is_another
+---
+question: |
+  Attorney to Add to ${ case.userfirm.firm }:
+fields:
+  - First name: case.userfirm.lawyers[i].name.first
+  - Middle name: case.userfirm.lawyers[i].name.middle
+    required: False
+  - Last name: case.userfirm.lawyers[i].name.last
+  - Bar No.: case.userfirm.lawyers[i].bar_no
+  - Email: case.userfirm.lawyers[i].email
+---
+event: profile3_page
+question: |
+  Your Firm
+review:
+  - label: Edit
+    field: law_review3
+    button: |
+      #### Attorneys
+
+      % if defined('case.userfirm.lawyers'):
+      ${ case.userfirm.lawyers }
+      % else:
+      <span class="text-muted">You have not yet added any attorneys to your firm.</span>
+      % endif
+  - label: Edit
+    fields: firm_name3
+    button: |
+      #### Firm Name
+
+      % if defined('case.userfirm.firm.name.text'):
+      ${ case.userfirm.firm.name.text }.
+      % else:
+      <span class="text-muted">You have not added your firm yet.</span>
+      % endif
+skip undefined: False
+---
+objects:
+  - case.userfirm.firm: Lawfirm
+  - case.userfirm.lawyers: SCLawyerList.using(there_are_any=True)

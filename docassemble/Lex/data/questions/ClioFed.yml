@@ -1,0 +1,223 @@
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED 
+---
+code: |
+
+  #Every state has its own name for its own trial courts (e.g., circuit courts, superior courts, supreme courts, etc.), which are divided into one of several various schemes (e.g., judicial districts, county, circuits, etc.). These nominal differences must be accurately reflected at all times in the program's interface as well as in any and all docs produced by the program. Otherwise, lawyers practicing in that jurisdiction will think Trial Legend is a fucking joke (seriously).
+
+  
+
+  #StateHeaders = {'Nevada': str('DISTRICT COURT ' + case.juris.county.name.text + ' COUNTY, NEVADA')}
+  StateBars = {
+  'Alabama': {'Northern': ['Florence', 'Huntsville', 'Decatur', 'Birmingham', 'Anniston', 'Tuscaloosa'],'Middle': ['Montgomery', 'Dothan', 'Opelika'], 'Sourthern': ['Mobile']}, 
+  
+  'Alaska': {'': ['Anchorage', 'Fairbanks', 'Juneau', 'Ketchikan', 'Nome']},
+  
+  'Arizona': {'':['Phoenix', 'Prescott', 'Tucson', 'Yuma', 'Flagstaff']},
+  
+  'Arkansas': {'Eastern':['Little Rock', 'Helena', 'Jonesboro'],'Western': ['Texarkana', 'El Dorado', 'Fort Smith', 'Harrison', 'Fayetteville', 'Hot Springs']},
+  
+  'California': 'SBN', #Uses line numbers!
+  
+  'Colorado': {'':['Denver', 'Durango', 'Grand Junction', 'Colorado Springs']},
+ 
+  'Connecticut': {'':['Bridgeport', 'Hartford', 'New Haven']},
+  
+  'DC': 'DC Bar No.',
+  
+  'Delaware': {'':['Wimington']},
+
+  'District of Columbia': {'':['Washington']},
+
+  'Florida': {'Northern':['Gainesville', 'Panama City', 'Pensacola', 'Tallahassee'], 'Middle':['Fort Myers', 'Jacksonville', 'Ocala', 'Orlando', 'Tampa'], 'Southern':['Fort Lauderdale', 'Fort Pierce', 'Key West, Miami', 'West Palm Beach']},
+  
+  'Georgia': {'Northern':['Gainesville', 'Atlanta', 'Rome', 'Newnan'], 'Middle':['Athens', 'Macon', 'Columbus', 'Albany', 'Valdosta'], 'Southern':['Augusta', 'Dublin', 'Savannah', 'Waycross', 'Brunswick', 'Statesboro']},
+  
+  'Hawaii': {'':['Honolulu']},
+
+  'Idaho': {'':["Boise", "Coeur d'Alene", "Moscow", "Pocatello"]},
+
+  'Illinois': {'Northern':['Chicago', 'Rockford'], 'Central':['Urbana', 'Peoria', 'Rock Island', 'Springfield'], 'Southern':['Benton', 'East St. Louis']},
+  
+  'Indiana': {'Northern':['Fort Wayne', 'South Bend', 'Hammond', 'Lafayette'], 'Southern': ['Indianapolis', 'Terre Haute', 'Evansville', 'New Albany']},
+
+  'Iowa': {'Northern':['Cedar Rapids', 'Sioux City'], 'Southern':['Des Moines', 'Council Bluffs', 'Davenport']},
+
+  'Kansas': {'':['Kansas City', 'Topeka', 'Wichita']},
+
+  'Kentucky': {'Eastern':['Ashland', 'Covington', 'Frankfort', 'Lexington', 'London', 'Pikeville'], 'Western':['Bowling Green', 'Louisville', 'Owensboro', 'Paducah']},
+
+  'Louisiana': {'Eastern':['New Orleans'], 'Middle':['Baton Rouge'], 'Western':['Alexandria', 'Lafayette', 'Lake Charles', 'Monroe', 'Shreveport']},
+
+  'Maine': {'':['Bangor', 'Portland']},
+
+  'Maryland':  {'Bar No. Abbreviation':'NY Bar #'},
+
+  'Massachusetts':  {'Bar No. Abbreviation':'NY Bar #'},
+
+  'Michigan':  {'Bar No. Abbreviation':'NY Bar #'},
+
+  'Minnesota': '#',
+
+  'Mississippi':  {'Bar No. Abbreviation':'NY Bar #'},
+  
+  'Missouri':  {'Bar No. Abbreviation':'NY Bar #'},
+
+  'Montana': {'':['Billings', 'Butte', 'Great Falls', 'Helena', 'Missoula']},
+
+  'Nebraska': {'':['Lincoln', 'North Platte', 'Omaha']},
+
+  'Nevada': 'Nevada Bar Identification Number',
+
+  'New Hampshire': {'':['Concord']},
+
+  'New Jersey':  {'Bar No. Abbreviation':'NY Bar #'},
+
+  'New Mexico':  {'Bar No. Abbreviation':'NY Bar #'},
+
+  'New York': 'NY Bar #',
+
+  'North Carolina': {'Eastern':['Elizabeth City', 'Fayetteville', 'Greenville', 'New Bern','Raleigh', 'Wilmington'],'Middle':['Durham', 'Greensboro', 'Winston-Salem'],'Western':['Asheville', 'Charlotte', 'Statesville']},
+
+  'North Dakota': {'':['Bismarck', 'Fargo', 'Grand Forks', 'Minot']},
+  'Ohio': {'Northern':['Cleveland', 'Youngstown', 'Akron', 'Toledo'],'Southern':['Cincinnati', 'Dayton', 'Columbus']},
+
+  'Oklahoma': {'Northern':['Tulsa'], 'Eastern':['Muskogee'], 'Western':['Oklahoma City']},
+
+  'Oregon': {'':['Eugene', 'Medford', 'Pendleton', 'Portland']},
+
+  'Pennsylvania': {'Eastern':['Allentown', 'Easton', 'Reading', 'Philadelphia'],'Middle': ['Harrisburg', 'Scranton', 'Wilkes-Barre', 'Williamsport'],'Western':['Erie', 'Johnstown', 'Pittsburgh']},
+
+  'Puerto Rico': {'':['San Juan']},
+
+  'Rhode Island': {'':['Providence']},
+  
+  'South Carolina': {'': ['Charleston', 'Columbia', 'Florence', 'Aiken', 'Greenville', 'Anderson', 'Spartanburg']},
+
+  'South Dakota': {'':['Aberdeen', 'Sioux Falls', 'Pierre', 'Rapid City']},
+  
+  'Tennessee': {'Eastern':['Knoxville', 'Greeneville', 'Chattanooga', 'Winchester'],'Middle':['Nashville', 'Cookeville', 'Columbia'],'Western':['Jackson', 'Memphis']},
+
+  'Texas': {'Northern':['Dallas', 'Fort Worth', 'Abilene', 'San Angelo', 'Amarillo','Wichita Falls', 'Lubbock'],'Southern': ['Galveston', 'Houston', 'Laredo', 'Brownsville', 'Victoria', 'Corpus Christi', 'McAllen'],'Eastern':['Tyler', 'Beaumont', 'Sherman', 'Marshall', 'Texarkana', 'Lufkin'],'Western': ['Austin', 'Waco', 'El Paso', 'San Antonio', 'Del Rio', 'Pecos', 'Midland', 'Alpine', 'Fort Hood']},
+
+  'Utah': {'':['Salt Lake City', 'St. George']},
+
+  'Vermont': {'':['Brattleboro', 'Burlington', 'Rutland']},
+
+  'Virginia': {'Eastern':['Alexandria', 'Newport News', 'Norfolk', 'Richmond'],'Western': ['Abingdon', 'Big Stone Gap', 'Charlottesville', 'Danville', 'Harrisonburg', 'Lynchburg', 'Roanoke']},
+
+  'Washington': {'Eastern':['Spokane', 'Yakima', 'Richland'],'Western':['Seattle', 'Tacoma']},
+
+  'West Virginia': {'Northern':['Clarksburg', 'Elkins', 'Martinsburg', 'Wheeling'],'Southern': ['Beckley', 'Bluefield', 'Charleston', 'Huntington']},
+
+  'Wisconsin': {'Eastern':['Green Bay', 'Milwaukee'],'Western':['Madison']},
+
+  'Wyoming': {'':['Casper', 'Cheyenne', 'Mammoth']}
+  }
+  
+  
+  FedCourts = {
+  'Alabama': {'Northern': ['Florence', 'Huntsville', 'Decatur', 'Birmingham', 'Anniston', 'Tuscaloosa'],'Middle': ['Montgomery', 'Dothan', 'Opelika'], 'Sourthern': ['Mobile']}, 
+  
+  'Alaska': {'': ['Anchorage', 'Fairbanks', 'Juneau', 'Ketchikan', 'Nome']},
+  
+  'Arizona': {'':['Phoenix', 'Prescott', 'Tucson', 'Yuma', 'Flagstaff']},
+  
+  'Arkansas': {'Eastern':['Little Rock', 'Helena', 'Jonesboro'],'Western': ['Texarkana', 'El Dorado', 'Fort Smith', 'Harrison', 'Fayetteville', 'Hot Springs']},
+  
+  'California':{'Northern':['Eureka', 'Oakland', 'San Francisco', 'San Jose'],'Eastern':['Fresno', 'Redding', 'Sacramento', 'Bakersfield', 'Yosemite'],'Central':['Riverside', 'Los Angeles', 'Santa Ana'],'Southern': ['San Diego', 'El Centro']},
+  
+  'Colorado': {'':['Denver', 'Durango', 'Grand Junction', 'Colorado Springs']},
+ 
+  'Connecticut': {'':['Bridgeport', 'Hartford', 'New Haven']},
+
+  'Delaware': {'':['Wimington']},
+
+  'District of Columbia': {'':['Washington']},
+
+  'Florida': {'Northern':['Gainesville', 'Panama City', 'Pensacola', 'Tallahassee'], 'Middle':['Fort Myers', 'Jacksonville', 'Ocala', 'Orlando', 'Tampa'], 'Southern':['Fort Lauderdale', 'Fort Pierce', 'Key West, Miami', 'West Palm Beach']},
+  
+  'Georgia': {'Northern':['Gainesville', 'Atlanta', 'Rome', 'Newnan'], 'Middle':['Athens', 'Macon', 'Columbus', 'Albany', 'Valdosta'], 'Southern':['Augusta', 'Dublin', 'Savannah', 'Waycross', 'Brunswick', 'Statesboro']},
+  
+  'Hawaii': {'':['Honolulu']},
+
+  'Idaho': {'':["Boise", "Coeur d'Alene", "Moscow", "Pocatello"]},
+
+  'Illinois': {'Northern':['Chicago', 'Rockford'], 'Central':['Urbana', 'Peoria', 'Rock Island', 'Springfield'], 'Southern':['Benton', 'East St. Louis']},
+  
+  'Indiana': {'Northern':['Fort Wayne', 'South Bend', 'Hammond', 'Lafayette'], 'Southern': ['Indianapolis', 'Terre Haute', 'Evansville', 'New Albany']},
+
+  'Iowa': {'Northern':['Cedar Rapids', 'Sioux City'], 'Southern':['Des Moines', 'Council Bluffs', 'Davenport']},
+
+  'Kansas': {'':['Kansas City', 'Topeka', 'Wichita']},
+
+  'Kentucky': {'Eastern':['Ashland', 'Covington', 'Frankfort', 'Lexington', 'London', 'Pikeville'], 'Western':['Bowling Green', 'Louisville', 'Owensboro', 'Paducah']},
+
+  'Louisiana': {'Eastern':['New Orleans'], 'Middle':['Baton Rouge'], 'Western':['Alexandria', 'Lafayette', 'Lake Charles', 'Monroe', 'Shreveport']},
+
+  'Maine': {'':['Bangor', 'Portland']},
+
+  'Maryland': {'':['Baltimore', 'Greenbelt']},
+
+  'Massachusetts': {'':['Boston', 'Springfield', 'Worcester']},
+
+  'Michigan': {'Eastern':['Ann Arbor', 'Detroit', 'Flint', 'Port Huron', 'Bay City'],'Western':['Grand Rapids', 'Kalamazoo', 'Lansing', 'Marquette']},
+
+  'Minnesota': {'':['Saint Paul', 'Minneapolis', 'Duluth', 'Fergus Falls']},
+
+  'Mississippi': {'Northern':['Aberdeen', 'Oxford', 'Greenville'],'Southern':['Jackson', 'Natchez', 'Gulfport', 'Hattiesburg']},
+  
+  'Missouri': {'Eastern':['St. Louis', 'Hannibal', 'Cape Girardeau'],'Western': ['Kansas City', 'Joplin', 'Saint Joseph', 'Jefferson City', 'Springfield']},
+
+  'Montana': {'':['Billings', 'Butte', 'Great Falls', 'Helena', 'Missoula']},
+
+  'Nebraska': {'':['Lincoln', 'North Platte', 'Omaha']},
+
+  'Nevada': {'':['Las Vegas', 'Reno']},
+
+  'New Hampshire': {'':['Concord']},
+
+  'New Jersey': {'':['Camden', 'Newark', 'Trenton']},
+
+  'New Mexico': {'':['Albuquerque', 'Las Cruces', 'Roswell', 'Santa Fe']},
+
+  'New York': {'Northern':['Albany', 'Binghamton', 'Plattsburgh', 'Syracuse', 'Utica'],'Southern':['New York City', 'White Plains'],'Eastern':['Brooklyn', 'Central Islip'],'Western':['Buffalo', 'Rochester']},
+
+  'North Carolina': {'Eastern':['Elizabeth City', 'Fayetteville', 'Greenville', 'New Bern','Raleigh', 'Wilmington'],'Middle':['Durham', 'Greensboro', 'Winston-Salem'],'Western':['Asheville', 'Charlotte', 'Statesville']},
+
+  'North Dakota': {'':['Bismarck', 'Fargo', 'Grand Forks', 'Minot']},
+  'Ohio': {'Northern':['Cleveland', 'Youngstown', 'Akron', 'Toledo'],'Southern':['Cincinnati', 'Dayton', 'Columbus']},
+
+  'Oklahoma': {'Northern':['Tulsa'], 'Eastern':['Muskogee'], 'Western':['Oklahoma City']},
+
+  'Oregon': {'':['Eugene', 'Medford', 'Pendleton', 'Portland']},
+
+  'Pennsylvania': {'Eastern':['Allentown', 'Easton', 'Reading', 'Philadelphia'],'Middle': ['Harrisburg', 'Scranton', 'Wilkes-Barre', 'Williamsport'],'Western':['Erie', 'Johnstown', 'Pittsburgh']},
+
+  'Puerto Rico': {'':['San Juan']},
+
+  'Rhode Island': {'':['Providence']},
+  
+  'South Carolina': {'': ['Charleston', 'Columbia', 'Florence', 'Aiken', 'Greenville', 'Anderson', 'Spartanburg']},
+
+  'South Dakota': {'':['Aberdeen', 'Sioux Falls', 'Pierre', 'Rapid City']},
+  
+  'Tennessee': {'Eastern':['Knoxville', 'Greeneville', 'Chattanooga', 'Winchester'],'Middle':['Nashville', 'Cookeville', 'Columbia'],'Western':['Jackson', 'Memphis']},
+
+  'Texas': {'Northern':['Dallas', 'Fort Worth', 'Abilene', 'San Angelo', 'Amarillo','Wichita Falls', 'Lubbock'],'Southern': ['Galveston', 'Houston', 'Laredo', 'Brownsville', 'Victoria', 'Corpus Christi', 'McAllen'],'Eastern':['Tyler', 'Beaumont', 'Sherman', 'Marshall', 'Texarkana', 'Lufkin'],'Western': ['Austin', 'Waco', 'El Paso', 'San Antonio', 'Del Rio', 'Pecos', 'Midland', 'Alpine', 'Fort Hood']},
+
+  'Utah': {'':['Salt Lake City', 'St. George']},
+
+  'Vermont': {'':['Brattleboro', 'Burlington', 'Rutland']},
+
+  'Virginia': {'Eastern':['Alexandria', 'Newport News', 'Norfolk', 'Richmond'],'Western': ['Abingdon', 'Big Stone Gap', 'Charlottesville', 'Danville', 'Harrisonburg', 'Lynchburg', 'Roanoke']},
+
+  'Washington': {'Eastern':['Spokane', 'Yakima', 'Richland'],'Western':['Seattle', 'Tacoma']},
+
+  'West Virginia': {'Northern':['Clarksburg', 'Elkins', 'Martinsburg', 'Wheeling'],'Southern': ['Beckley', 'Bluefield', 'Charleston', 'Huntington']},
+
+  'Wisconsin': {'Eastern':['Green Bay', 'Milwaukee'],'Western':['Madison']},
+
+  'Wyoming': {'':['Casper', 'Cheyenne', 'Mammoth']}
+  }
+ 
+---

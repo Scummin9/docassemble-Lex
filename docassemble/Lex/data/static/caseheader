@@ -1,0 +1,21 @@
+.row {
+  overflow: hidden;
+}
+
+.cols {
+  padding-bottom: 100%;
+  margin-bottom: -100%;
+  overflow: hidden;
+}
+
+@media(min-width: 992px) {
+  .col-md-4:not(:first-child), 
+  .col-md-6:not(:first-child) {
+    border-left: 1px solid black;
+  }
+  .col-md-4:not(:last-child),
+  .col-md-6:not(:last-child) {
+    border-right: 1px solid black;
+    margin-right: -1px;
+  }
+}

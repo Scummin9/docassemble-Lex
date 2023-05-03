@@ -1,0 +1,70 @@
+---
+code: |
+  if not processing_fax.ready():
+    waiting_screen
+  converted = True
+---
+code: |
+  processing_fax = background_action('process_faxes')  
+---
+event: store_processed_fax
+code: |
+  final_fax = action_argument('the_file')
+  background_response()
+---
+generic object: DAFile
+attachment:
+  variable name: x.number_along
+  docx template file: fax_cover_template.docx
+---
+event: waiting_screen
+question: Please wait . . .
+reload: True
+---
+modules:
+  - .pdfutils
+---
+question: |
+  Upload the pdfs to concatenate.
+fields:
+  - no label: pdfs_to_concatenate
+    datatype: files
+---
+#event: process_faxes
+code: |
+  #alldocfilesz = DAFileList("alldocfilesz", auto_gather=False)
+  #alldocfilesz.clear()
+  import math
+  the_range = math.ceil(pdfs_to_concatenate[0].num_pages()/50)
+  the_number = math.ceil(pdfs_to_concatenate[0].num_pages()/the_range)
+  fifty_pages = []
+  for index in range(the_range):
+    if index == 0:
+      first_page = index+1
+      last_page = (index+1)*the_number
+    elif index == the_range:
+      first_page = index*the_number
+      last_page = pdfs_to_concatenate[0].num_pages()
+    else:
+      first_page = index*the_number
+      last_page = (index+1)*the_number
+    #alldocfilesz.appendObject(DAFile)
+    #I should take the generic template and have it make one for each group in the range instead of initializing the new file. 
+    #alldocfilesz[-1].initialize(filename="{}.{}".format(str(index +1), "fifty_pages.pdf"))
+    fifty_pages.append(pdf_from_pages(pdfs_to_concatenate, first=first_page, last=last_page))
+    #fifty_pages = 
+  #alldocfilesz.gathered = True
+  #background_response()
+  #background_response_action('store_processed_fax', the_file=alldocfilesz)
+  #docs_to_fax = True
+  #output_file = pdf_concatenate(
+  #fax_result = send_fax(user, document)
+  #output_file = pdf_concatenate(pdfs_to_concatenate, filename="result.pdf")
+---
+event: concatenated
+question: |
+  Here is your concatenated file.
+subquestion: |
+  % for file in fifty_pages:
+  ${ file }
+  % endfor

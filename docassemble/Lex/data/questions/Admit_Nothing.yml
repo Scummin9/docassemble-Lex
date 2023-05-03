@@ -1,0 +1,307 @@
+#Hello Me, Meet the Other Me...
+---
+question: |
+  Upload the RFP in pdf form:
+fields:
+  - RFP: d_rfp
+    datatype: file
+validation code: |
+  try:
+    for item in d_rfp:
+      assert item.mimetype == 'application/pdf'
+    d_rfp.fix_up()
+  except:
+    raise validation_error("Sorry, that is not a valid PDF file")
+section: Upload RFP
+---
+question: |
+  How many requests ${ parties.rrfp_recipients(lawfirms[0].clientlist(case)).did_verb('has') } ${ parties.rrfp_recipients(lawfirms[0].clientlist(case)).asnoun() } sent already (total)? 
+fields:
+  - Number: rfpnum
+---
+code: |
+  if ordinal_rfp != 'First':
+    prior_rfps_count = int(rfpnum) + 1
+  else:
+    prior_rfps_count = 1
+---
+question: |
+  Which set of RFPs is this?
+fields:
+  - RFP Number: ordinal_rfp
+    choices:
+    - First
+    - Second
+    - Third
+    - Fourth
+---
+event: rrfa_wait
+question: |
+  Relax and let the machine work its magic. This screen will reload when the requests are ready.
+reload: 10
+---
+mandatory: True
+code: |
+  request_getter
+  if not request_getter.ready():
+    defendant
+    defendantrec
+    plaintiff
+    set_parts(title='RRFA Maker © Scott Cumming 2021 – ' + plaintiff[0].last_name(), subtitle=plaintiff[0].name.full() + ' - © Scott Cumming 2021')
+    wait
+  else: 
+  
+    C_No = str(quaero_caseno(request_getter.get()))
+    if C_No == '. . .':
+      Case_No
+    else:
+      Case_No = str(quaero_caseno(request_getter.get()))
+      
+    filed = quaero_juris(request_getter.get())
+    if filed == '. . .':
+      case.juris
+    else:
+      filed_in = str(quaero_juris(request_getter.get()))
+      if filed_in == 'EUGENE':
+        case.juris = 'federal'
+        Court_district = str(filed_in)
+      elif filed_in == 'PORTLAND':
+        juris = 'federal'
+        Court_district = str(filed_in)
+      elif filed_in == 'PENDLETON':
+        juris = 'federal'
+        Court_district = str(filed_in)
+      elif filed_in == 'MEDFORD':
+        juris = 'federal'
+        Court_district = str(filed_in)
+      else:
+        juris = 'state'
+        Court_county = str(filed_in)
+        
+    defs_and_instructions = str(quaero_discovery_instructions(request_getter.get()))
+    
+    rss = quaero_rfas(request_getter.get())
+    for index in range(len(rss)): 
+      request[index].name.text = rss[index]
+  request.gathered=True
+  for index in range(len(request)): 
+    request[index].Attorney_Client
+  for index in range(len(request)):
+    if not any([request[index].reasonable_inquiry, request[index].Attorney_Client, request[index].expert, request[index].vauge_ambiguous, request[index].undefined_subjective]):
+      request[index].no_wow 
+    else:
+      request[index].yes_wow
+---
+question: |
+  |  
+  |  
+  How many requests has defendant sent already (total)?
+fields:
+  - Number: rfpnum
+    datatype: integer
+---
+question: |
+  |  
+  |  
+  Your objections have been added to the document. Enter/select your substantive response to Defendant's ${ ordinal (i) } RFA below:
+right: |
+  |  
+  |  
+  ${ defs_and_instructions }
+subquestion: |
+  **REQUEST FOR ADMISSION NO. ${ i+1 }:** ${ request[i] }
+fields:
+  - RESPONSE: request[i].no_wow
+    input type: combobox
+    default: Deny
+    choices: 
+    - Admit
+    - Deny
+---
+question: |
+  |  
+  |  
+  Your objections have been added to the document. Enter/select your substantive response to Defendant's ${ ordinal (i) } RFA below:
+subquestion: |
+  **REQUEST FOR ADMISSION NO. ${ i+1 }:** ${ request[i] }
+right: |
+  |  
+  |  
+  ${ defs_and_instructions }
+fields:
+  - '**RESPONSE**: Subject to said objections, Plaintiff . . .': request[i].yes_wow
+    input type: combobox
+    default: denies
+    choices: 
+    - admits
+    - denies
+---
+question: | 
+  |  
+  |  
+  Which, if any, of the following objections are there to Defendant's ${ ordinal (i) } Request for Amission?
+subquestion: |
+  **REQUEST FOR ADMISSION NO. ${ i+1 }:** ${ request[i] }
+right: |
+  |  
+  |  
+  |  
+  |  
+  ${ defs_and_instructions }
+fields:
+  - Undefined and subjective term or phrase: request[i].undefined_subjective
+    datatype: yesno
+  - Term: request[i].bad_term
+    show if:
+      variable: request[i].undefined_subjective
+      is: True
+  - Reasonable inquiry has been made, and the information known or readily obtainable by Plaintiff is insufficient to enable Plaintiff to admit or deny this request: request[i].reasonable_inquiry
+    datatype: yesno
+  - Plaintiff objects to this request as ambiguous, unclear, and confusing, precluding Plaintiff from sufficiently being able to admit or deny this request: request[i].vauge_ambiguous
+    datatype: yesno
+  - Plaintiff objects to this request as calling for an undiscoverable expert opinion: request[i].expert
+    datatype: yesno
+  - Plaintiff objects to this request as calling for information protected under the attorney client privilege and/or attorney work product doctrine: request[i].Attorney_Client
+    datatype: yesno
+---
+mandatory: True
+event: review
+continue button field: final_screen
+question: |
+  |  
+  |  
+  Review your answers here:
+subquestion: |
+  ${ request.table }
+---
+table: request.table
+rows: request
+columns:
+  - REQUEST FOR ADMISSION NO.: |
+      row_index + 1
+  - Request: |
+      row_item.name.text
+  - Undefined or Subjective Term: |    
+      row_item.undefined_subjective
+  - Unable to admit or deny after reasonable inquiry: |
+      row_item.reasonable_inquiry 
+  - Attorney Client Privelege: |  
+      row_item.Attorney_Client
+  - Vague and Ambiguous: |    
+      row_item.vauge_ambiguous
+  - Impermissible Expert Discovery: |  
+      row_item.expert
+edit:
+  - name.bad_term
+---
+event: request_error
+question: |
+  It looks like the machine didn't pick up any RFPs in the document you uploaded. If you think this was an error, press the "**Back**" button in the top left corner of your screen to give it another try. To enter the RFPs manually, press "**Continue**" below.
+continue button field: request.there_are_any
+---
+question: |
+  Type, edit, or copy-paste the ${ ordinal(i) } RFP here:
+fields:
+  - Name: request[i].name.text
+    input type: area
+    rows: 10
+---
+question: |
+  Are there any more RFPs?
+yesno: request.there_is_another
+---
+question: |
+  Did ${ parties[i].designation } ${ parties[i] } send this discovery request?
+yesno: parties[i].requesting_discovery
+---
+event: final_rrfp
+question: |
+  Here is your RRFP
+subquestion: |  
+  **This document is only a draft.***
+post: |
+  ***This document is only a draft.** The documents produced by Trial Legend are designed to help lawyers in their professional practice. Although all material is reviewed carefully before its inclusion with Trial Legend, in dealing with specific legal matters the lawyer should research original sources of authority. Although the materials included with the Trial Legend Software are a valuable starting point for drafting litigation documents, the standards of the legal profession demand that any lawyer review any documents produced by Trial Legend for accuracy and conduct independent legal research using primary legal sources. Trial Legend makes neither express nor implied warranties regarding the use of the materials included with the Trial Legend Software. Each lawyer must depend on his or her own research, knowledge of the law, and expertise in using these materials. This document is provided as a starting point for your document drafting. It is the user’s responsibility to apply law to fact and to modify this document as needed based on the facts in the case and the requirements of the applicable law. This document is offered here for a limited purpose as a practice aid, and each lawyer must depend on his or her own research and judgment in determining which objections to make and whether and how to modify this document.
+attachment code: my_documents
+---
+metadata:
+  unlisted: True
+  title: RRFP Maker | Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+  authors:
+    - name: Scott M Cumming
+    - organization: ©2021 Scott Cumming ALL RIGHTS RESEVERED
+  revision date: 7-3-2021
+  required privileges:
+    - admin
+    - customer
+---
+mandatory: True
+code: |
+  #left_margin = int(relative_margin_width*600)
+  if case.juris == 'state':
+    if not ocr_task.ready():
+      wait
+    else:
+      try:
+        left_margin = int(quaero_x(d_rfp)[0])
+        bottom_margin = int(quaero_x(d_rfp)[1])
+        how_high = int(4400-quaero_x(d_rfp)[1])
+        request_getter = ocr_file_in_background(d_rfp, x=left_margin, H=how_high)
+      except:
+        request.prepopulated=True
+        request_error
+  else:
+    request_getter = ocr_file_in_background(d_rfp)
+---
+code: |
+  ocr_task = d_rfp.make_ocr_pdf_in_background()
+---
+only sets: request.prepopulated
+code: |
+  request_getter
+  if not request_getter.ready():
+    wait
+  else:
+    request.clear()
+    rss = quaero_rrfps(request_getter.get())
+    for index in range(len(rss)): 
+      request.append()
+      request[index].name.text = single_paragraph(rss[index])
+  if request.number_gathered():
+    request.there_is_another = False
+    request.gathered=True
+  request.prepopulated=True
+---
+objects:
+  - request: SCList.using(object_type=SCRequests)
+  - my_documents: DAList.using(auto_gather=False)
+---
+include:
+  - case_tables.yml
+---
+code: |
+  my_documents.clear()
+  if case.juris == 'federal':
+    my_documents.append(RRFP_Made_fed)
+  else:
+    my_documents.append(RRFP_Made)
+  my_documents.there_is_another = False
+  my_documents.gathered = True
+  from docx import Document
+  docx = Document(my_documents[0].path())
+  docx.core_properties.author = 'Trial Legend'
+  docx.save(my_documents[0].path())
+  del docx
+---
+attachment:
+  variable name: RRFP_Made
+  docx template file: prod_rrfpmaker111.docx
+  filename: RRFP 
+  valid formats:
+  - docx
+---
+attachment:
+  variable name: RRFP_Made_fed
+  docx template file: prod_rrfpfed1111.docx
+  filename: RRFP 
+  valid formats:
+  - docx

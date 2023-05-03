@@ -1,0 +1,131 @@
+---
+mandatory: True
+code: |
+  style_version = 0
+---
+event: new_version
+code: |
+  style_version += 1
+---
+depends on: style_version
+question: |
+  Customize your style:
+fields:
+  - Font: case.style_guide.font_name
+    code: |
+      allfonts
+    #default: default_font_name
+  - Font Size: case.style_guide.font_size
+    datatype: number
+    min: 8
+    max: 20
+    step: 0.5
+    #default: default_font_size
+  - Left Margin: case.style_guide.left_margin
+    datatype: number
+    min: 0
+    max: 8.25
+    step: .05
+    default: 1
+  - Right Margin: case.style_guide.right_margin
+    datatype: number
+    min: 0
+    max: 8.25
+    step: .05
+    default: 1
+  - Bottom Margin: case.style_guide.bottom_margin
+    datatype: number
+    min: 0
+    max: 8.25
+    step: .05
+    default: 1
+  - Top Margin: case.style_guide.top_margin
+    datatype: number
+    min: 0
+    max: 8.25
+    step: .05
+    default: 1
+  - line spacing: case.style_guide.line_spacing_body
+    choices:
+    - exactly
+    - multiple
+    - double
+    - single
+    default: single
+  - Spacing: case.style_guide.multiple
+    datatype: number
+    min: 0
+    max: 3
+    step: .05
+    show if:
+      variable: case.style_guide.line_spacing_body
+      is: multiple
+  - Spacing: case.style_guide.exactly
+    datatype: number
+    min: 0
+    max: 30
+    step: .1
+    show if:
+      variable: case.style_guide.line_spacing_body
+      is: exactly
+  - Justification: case.style_guide.justification
+    choices:
+    - fully
+    - left
+    - right
+    default: fully
+---
+depends on: style_version
+question: |
+  Customize your style:
+fields:
+  - right_indent: case.style_guide.right_indent
+  - first_line_indent_requests: case.style_guide.first_line_indent_requests
+  - first_line_indent_body: case.style_guide.first_line_indent_body
+  - line_spacing_body: case.style_guide.line_spacing_body
+  - line_spacing_bq: case.style_guide.line_spacing_bq
+  - line_justification_body: case.style_guide.line_justification_body
+  - line_spacing_rule_body: case.style_guide.line_spacing_rule_body
+  - line_spacing_rule_bq: case.style_guide.line_spacing_rule_bq
+---
+depends on: style_version
+code: |
+  if not userdata2.defined("style_guide"):
+    default_font_name = "Times New Roman"
+    default_font_size = 12.0
+    default_left_margin = 1
+    default_right_margin =1
+    default_bottom_margin = 1
+    default_top_margin = 1
+  else:
+    default_font_name = case.style_guide.font_name
+    default_font_size = case.style_guide.font_size
+    default_left_margin = case.style_guide.left_margin
+    default_right_margin = case.style_guide.right_margin
+    default_bottom_margin = case.style_guide.bottom_margin
+    default_top_margin = case.style_guide.top_margin
+    
+---
+depends on: style_version
+code: |
+  case.style_guide = userdata2.get("style_guide") or DAObject('case.style_guide')
+  
+---
+depends on: style_version
+code: |
+  default_font_size
+  case.style_guide.font_name
+  default_top_margin
+  case.style_guide.top_margin
+  if not userdata2.defined("style_guide"):
+    userdata2.set("style_guide", case.style_guide)
+  #style_guide
+  get_style=True
+---
+depends on: style_version
+event: style_guide
+question: |
+  Your Style Guide:
+  
+  * **Font**: ${ case.style_guide.font_name }
+  * **Font Size**: ${case.style_guide.font_size }

@@ -1,0 +1,35 @@
+---
+question: |
+  Add an "Attention" line to the address for ${ case.lien_creditors[i] }?
+yesno: case.lien_creditors[i].has_attn
+---
+question: |
+  What type of creditor is ${ case.lien_creditors[i] }?
+fields:
+  - no label: case.lien_creditors[i].sc_type
+    choices:
+    - HI
+    - PIP
+    - Loan
+---
+question: |
+  Info for final payment to ${ case.lien_creditors[i] }?
+fields:
+  - Final Satisfaction Amount: case.lien_creditors[i].check_value
+    datatype: currency
+  - Check Number: case.lien_creditors[i].check_number
+---
+question: |
+  What is ${ possessify(clients[i].name.full(), "") }Primary Health Insurance Member ID?
+fields:
+  - HI Member ID: clients[i].hi_member_id
+---
+question: |
+  What is ${ possessify(clients[i].name.full(), "") }PIP Claim Number?
+fields:
+  - PIP Claim Number: clients[i].pip_claim_no
+---
+question: |
+  What is ${ possessify(clients[i].name.full(), "") }Loan/Case Number?
+fields:
+  - Loan/Case Number: clients[i].loan_no

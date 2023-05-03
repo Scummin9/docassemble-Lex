@@ -1,0 +1,32 @@
+---
+event: filled_authorization 
+question: |
+  Your documents
+subquestion: |
+  % for provider in case.providers:
+  
+  
+  - ${ overlay_pdf(blank_authorization, provider.authorization.pdf) }
+  
+  
+  - ${ provider.filled_auth }
+  
+  
+  % endfor
+---
+generic object: Provider
+attachment:
+  variable name: x.authorization
+  docx template file: cnb_auth_template_1.docx
+---
+question: |
+  Upload the client's blank authorization form.
+fields:
+  - Files: blank_authorization
+    datatype: files
+---
+code: |
+  for provider in case.providers:
+    provider.filled_auth = pdf_concatenate(provider.CNBrequest, overlay_pdf(blank_authorization, provider.authorization.pdf))
+  filled_authorization
+  filled_forms = True

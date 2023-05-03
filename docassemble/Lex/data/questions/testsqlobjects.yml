@@ -1,0 +1,74 @@
+continue button field: show_lawfirms
+question: |
+  Lawfirms
+subquestion: |
+  *The type of objects in case.lawfirms is ${ case.lawfirms.object_type }.
+  
+  
+  %for firm in case.lawfirms:
+  1. The **${ firm.object_name() }** is ${ firm }.
+  
+  
+  2. The **${ firm.object_name() }** id is ${ firm.id }.
+  
+  
+  3. The *${ firm.object_name() }** .name.text is ${ firm.name.text }.
+  
+  
+  4. The **${ firm.object_name() }** .name.text is ${ firm.name.text }.
+  %endfor
+---
+continue button field: show_parties
+question: |
+  Parties
+subquestion: |
+  *The type of objects in case.parties is ${ case.parties.object_type }.
+  
+  
+  %for party in case.parties:
+  1. The **${ party.object_name() }** is ${ party }.
+  
+  
+  2. The **${ party.object_name() }** id is ${ party.id }.
+  
+  
+  %for firm in party.firms:
+  a. The **${ firm.object_name() }** is ${ firm }.
+  
+  
+  b. The **${ firm.object_name() }** id is ${ firm.id }.
+  
+  
+  c. The **${ firm.object_name() }** .name.text is ${ firm.name.text }.
+  
+  
+  d. The **${ firm.object_name() }** .name.text is ${ firm.name.text }.
+  %endfor
+  %endfor
+---
+continue button field: show_lawyers
+question: |
+  Lawyers
+subquestion: |
+  * The type of objects in case.lawyers is ${ case.lawyers.object_type }.
+  
+  
+  %for lawyer in case.lawyers:
+  1. The **${ lawyer.object_name() }** is ${ lawyer }.
+  
+  
+  2. The **${ lawyer.object_name() }** object type is ${ lawyer.id }.
+  
+  
+  3. The **${ lawyer.firm.object_name() }** is ${ lawyer.firm }.
+  
+  
+  4. The **${ lawyer.firm.object_name() }** id is ${ lawyer.firm.id }.
+  
+  
+  5. The **${ lawyer.firm.object_name() }** .name.text is ${ lawyer.firm.name.text }.
+  
+  
+  6. The **${ lawyer.firm.object_name() }** .name.text is ${ lawyer.firm.name.text }.
+
+  %endfor

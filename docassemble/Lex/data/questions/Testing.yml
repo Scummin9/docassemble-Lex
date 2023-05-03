@@ -1,0 +1,6 @@
+code: |
+  output, return_code = run_python_module('test_units.py')
+---
+mandatory: True
+question: |
+  ${ output }

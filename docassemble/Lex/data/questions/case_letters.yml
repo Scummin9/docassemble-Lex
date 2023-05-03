@@ -1,0 +1,33 @@
+---
+objects:
+  - letters: SCList.using(object_type=SCPerson, there_are_any=True)
+  - letters[i].sent_via: SCList.using(object_type=Thing, there_are_any=True)
+---
+question: |
+  How will the letter be sent?
+fields:
+  - Sent via: letters[i].sent_via[j].name.text
+    choices:
+    - Fax
+    - Email
+    - Hand Delivered
+    - First-Class Mail
+    - Certified Mail
+    - First-Class and Certified Mail
+list collect: True
+---
+#Trial Legend ©2021 Scott Cumming - ALL RIGHTS RESEVERED
+event: final_letter
+question: |
+    **This document is only a draft.***
+post: |
+  ***This document is only a draft.** The documents produced by Trial Legend are designed to help lawyers in their professional practice. Although all material is reviewed carefully before its inclusion with Trial Legend, in dealing with specific legal matters the lawyer should research original sources of authority. Although the materials included with the Trial Legend Software are a valuable starting point for drafting litigation documents, the standards of the legal profession demand that any lawyer review any documents produced by Trial Legend for accuracy and conduct independent legal research using primary legal sources. Trial Legend makes neither express nor implied warranties regarding the use of the materials included with the Trial Legend Software. Each lawyer must depend on his or her own research, knowledge of the law, and expertise in using these materials. This document is provided as a starting point for your document drafting. It is the user’s responsibility to apply law to fact and to modify this document as needed based on the facts in the case and the requirements of the applicable law. This document is offered here for a limited purpose as a practice aid, and each lawyer must depend on his or her own research and judgment in determining which objections to make and whether and how to modify this document.
+subquestion: |
+  [DOWNLOAD DRAFT],
+
+  [DOWNLOAD DRAFT]: ${ case.letter.url_for(temporary=True) } 
+action buttons:
+  - label: Style
+    action: new_version
+    color: primary
+---

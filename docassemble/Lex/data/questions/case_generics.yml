@@ -1,0 +1,237 @@
+generic object: SCPerson
+question: |
+  What is ${ x.possessive("") }address?
+fields:
+  - Street Address: x.address.address
+    address autocomplete: True
+  - Unit: x.address.unit
+    required: False
+  - City: x.address.city
+  - State: x.address.state
+    code: |
+      states_list()
+  - Zip: x.address.zip
+---
+generic object: SCPerson
+question: |
+  What is ${ possessify(x, "") }specialty?
+fields:
+  - specialty: x.specialty
+---
+generic object: SCPerson
+question: |
+  What is the email address for ${ x }?
+fields:
+  - email: x.email
+---
+generic object: SCPerson
+question: |
+  What is the phone number for ${ x }?
+fields:
+  - Phone: x.phone_number
+---
+generic object: SCPerson
+question: |
+  What is the fax number for  ${ x }?
+fields:
+  - Fax: x.fax_number
+    required: False
+---
+generic object: SCIndividual
+question: |
+  What is the birthdate of the ${ x.object_name() }?
+fields:
+  - Birthdate: x.birthdate
+---
+generic object: SCIndividual
+question: |
+  Date of the inident:
+fields:
+  - Date of Incident: x.doi
+    datatype: date
+---
+generic object: SCIndividual
+question: |
+  What is the  ${ x.object_name() }'s designation?
+fields:
+  - Designation: x.designation
+---
+generic object: SCIndividual
+question: |
+  What is the SSN of the ${ x.object_name() }?
+fields:
+  - SSN: x.ssn
+---
+generic object: SCIndividual
+question: |
+  What is the name of the ${ x.object_name() }?
+fields:
+  - First Name: x.name.first
+  - Middle Initial: x.name.middle
+    required: False
+  - Last Name: x.name.last
+---
+generic object: SCIndividual
+question: |
+  What is ${ x.possessive('gender')}?
+fields:
+  - Gender: x.gender.name.text
+    choices: 
+      - male
+      - female
+      - other
+---
+generic object: SCPerson
+question: |
+  What is the name of the ${ x.object_name() }?
+fields:
+  - Name: x.name.text
+---
+generic object: SCPerson
+question: |
+  What is the fax number for the  ${ x.object_name() }?
+fields:
+  - Fax: x.fax
+---
+generic object: SCIndividual
+question: |
+  What is the fax of the ${ x.object_name() }?
+fields:
+  - Fax: x.fax
+---
+generic object: SCIndividual
+question: |
+  What is the phone number for ${ x.object_name() }?
+fields:
+  - Phone: x.phone
+---
+generic object: SCIndividual
+question: |  
+  What state is/was ${ x.designation } ${ x } domiciled in at the time of filing?
+fields:
+  - Domicile: x.domicile
+    code: |
+      states_list()
+---
+generic object: SCIndividual
+question: |
+  What is ${ x.designation } ${ x.possessive("") } address?
+fields:
+  - Street Address: x.address.address
+    address autocomplete: True
+  - Unit: x.address.unit
+    required: False
+  - City: x.address.city
+  - State: x.address.state
+    code: |
+      states_list()
+  - Zip: x.address.zip
+---
+generic object: SCIndividual
+question: |
+  % if x.type == 'personal representative for an estate':
+    Decedent's Info:
+  % elif x.type == 'guardian ad litem':
+    Minor's Info:
+  % endif
+fields:
+  - First Name: x.sub.name.first
+  - Middle Initial: x.sub.name.middle
+    required: False
+  - Last Name: x.sub.name.last
+  - Gender: x.sub.gender
+    choices: 
+      - male
+      - female
+      - other
+---
+generic object: SCPerson
+question: |
+  ${ x.designation } ${ x.possessive("") }business info:
+fields:
+  - Active or Inactive: x.business_status
+    choices:
+      - Active
+      - Inactive
+  - Authorized to conduct business in OR as a: x.orauthorized
+    required: False
+---
+generic object: SCPerson
+question: |
+  ${ x.designation } ${ x.possessive("") }business info:
+fields:
+  - Business Entity Type: x.business_entity.name.text
+    code: |
+      orbusinessentities
+---
+generic object: SCPerson
+question: |
+  ${ x.designation } ${ x.possessive("") }state of incorporation:
+fields:
+  - State of Incorporation: x.stofinc
+    code: |
+      states_list()
+---
+generic object: SCPerson
+question: |
+  Is ${ x.designation } ${ x.possessive("")}Principle Place of Business different from its address?
+fields:
+  - Different PPB: x.ppb_diff
+    datatype: yesnoradio
+    default: False
+---
+generic object: SCPerson
+Question: |
+  Address for ${ x.designation } ${ x.possessive("") }Principle Place of Business:
+fields:
+  - Street Address: x.ppb.address.address
+    address autocomplete: True
+  - Unit: x.ppb.address.unit
+  - City: x.ppb.address.city
+  - State: x.ppb.address.state
+    code: |
+      states_list()
+  - Zip: x.ppb.address.zip
+---
+generic object: SCPerson
+Question: |
+  What is ${ x.possessive("") } address?
+fields:
+  - Street Address: x.address.address
+    address autocomplete: True
+  - Unit: x.address.unit
+    required: False
+  - City: x.address.city
+  - State: x.address.state
+    code: |
+      states_list()
+  - Zip: x.address.zip
+---
+generic object: SCIndividual
+question: |
+  What is the ${ possessify(x.object_name(), "") }birthdate?
+fields:
+  - birthdate: x.birthdate
+    datatype: date
+---
+generic object: SCIndividual
+question: |
+  What is the name of the trust of which ${ x.designation } ${ x } is trustee?
+fields:
+  - Trust Name: x.trust
+---
+generic object: SCIndividual
+question: |
+  What is the name of the business under which ${ x.designation } ${ x } is doing business?
+fields:
+  - Business Name: x.dba
+---
+generic object: SCList
+question: |
+  Besides ${ x } are there any more ${ x.object_name() }?
+yesno: x.there_is_another
+---
+generic object: SCList
+question: |
+  Are there any ${ x.object_name() }?
+yesno: x.there_are_any

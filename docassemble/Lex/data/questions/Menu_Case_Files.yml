@@ -1,0 +1,81 @@
+mandatory: False
+code: |
+  for item in ('agrees_to_tos'):
+    userdata2.delete(item)
+---
+mandatory: True
+code: |
+  set_parts(title='Drafts | Trial Legend', logo='<img src="' + company_logo.url_for() + '" style="height: 35px; width: 35px;">')
+  yoolah_get
+  yoolah_set
+---
+reconsider: True
+code: |
+  current_info = user_info()
+  list_of_interviews = list()
+  next_id = None
+  while True:
+    (items, next_id) = interview_list(next_id=next_id, include_dict=False)
+    for info in items:
+      if info['filename'] != current_info.filename:
+        list_of_interviews.append(info)
+    if not next_id:
+        break
+  if len(list_of_interviews) > 0:
+    list_of_interviews += [dict()]
+---
+table: session_table
+rows: |
+  list_of_interviews
+columns:
+  - Drafter: |
+      '<a href="' + interview_url(i=row_item['filename'], session=row_item['session']) + '">' + row_item['title'] + '</a>' if 'title' in row_item else ''
+  - Case Name: |
+      row_item['subtitle'] if 'subtitle' in row_item else ''
+  - Last Opened: |
+      row_item['modtime'] if 'modtime' in row_item else ''
+  - Delete: |
+      action_button_html(url_action('delete', filename=row_item['filename'], session=row_item['session']), color='warning', label='Delete') if 'title' in row_item else action_button_html(url_action('delete_all'), color='danger', label='Delete All')
+---
+table css class: table mytable
+prevent going back: True
+mandatory: True
+question: |
+  Drafts
+subquestion: |
+  % if len(list_of_interviews) > 0:
+  Click on the drafter to the left of the case name below to open one of your drafts. **A draft will be automatically deleted after 30 days of inactivity.**
+  ${ session_table }
+  % else:
+  You do not have any open drafts at this time.
+  % endif
+---
+event: delete
+code: |
+  if interview_list(
+      action='delete',
+      filename=action_argument('filename'),
+      session=action_argument('session')):
+    log("Deleted interview", "success")
+---
+event: delete_all
+code: |
+  interview_list(action='delete_all')
+  log("Deleted interviews", "success")
+---
+metadata:
+  title: Drafts | Trial Legend - ©2021 Scott Cumming ALL RIGHTS RESEVERED
+  authors:
+    - name: Scott M Cumming
+    - organization: ©2021 Scott Cumming ALL RIGHTS RESEVERED
+  revision date: 7-3-2021
+  require login: True
+  required privileges:
+    - admin
+    - customer
+---
+include:
+  - EULA.yml
+---
+features:
+  centered: False

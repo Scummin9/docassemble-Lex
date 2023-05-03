@@ -1,0 +1,183 @@
+---
+event: log_user_out
+code: |
+  command('logout')
+---
+features:
+  javascript: idle.js  
+---
+objects: 
+  - rules: DADict.using(auto_gather=False)
+---
+mandatory: True
+question: |
+
+  % if email_sent_ok:
+  The e-mail was sent successfully.
+  % else:
+  There was a problem sending the e-mail.
+  % endif
+---
+objects:
+  - master: Individual
+---
+code: |
+  set_parts(title=str(state))
+  master.email='scummin9@gmail.com'
+  master.name.first='Scott'
+  master.name.last='Cumming'
+  rules['trial courts']
+  rules['header 1']
+  rules['official title']
+  rules['abbreviation']
+  for item in fedx.keys():
+    rules[item]
+  rules.gathered = True
+  email_sent_ok = send_email(to=master, template=notification, sender=master)
+---
+template: notification
+subject: |
+  Greetings, ${ master }!
+content: |
+   "${ state }": ${ rules.elements }
+---
+code: |
+  fedz = sorted(fedx.items(), key=lambda x: x[1])
+---
+question: |
+  What State?
+fields:
+  - State: state
+    code: |
+      states_list()
+    exclude: |
+      finished_states
+---
+question: |
+  What are trial courts called in ${ state_name(state) }?
+fields:
+  - no label: rules['trial courts']
+---
+question: |
+  If the rules of civil procedure in ${ state } have forms available, copy each line of the jurisdictional information in the caption here:
+fields: 
+  - line 1: rules['header 1']
+    required: False
+    hint: "e.g., UNITED STATES DISTRICT COURT"
+  - line 2: rules['header 2']
+    required: False
+    hint: "e.g., DISTRICT OF OREGON"
+  - line 3: rules['header 3']
+    required: False
+    hint: "e.g., EUGENE DIVISION"
+---
+question: |
+  What what is the official title for the rules of civil procedure in ${ state_name(state) }?
+fields:
+  - no label: rules['official title']
+    hint: "e.g., Federal Rules of Civil Procedure"
+---
+question: |
+  What what is the practical abbreviation (i.e., not the BlueBook abbreviation) for the rules of civil procedure in ${ state_name(state) }?
+fields:
+  - no label: rules['abbreviation']
+    hint: "e.g., FRCP, not Fed. R. Civ. Proc."
+---
+question: |
+  What's the rule for ${ i } in ${ state_name(state) }?
+fields:
+  - Value: rules[i]
+    default: |
+      ${ fedx[i] }
+---
+code: |
+  finished_states = ['DC', 'GU', 'CM', 'VI', 'PR', 'UM', 'MP', 'CZ', 'AS', 'AL', 'AK', 'AZ', 'AR', 'CA',  'CO', 'CT', 'DE', 'OR', 'FL','GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY']
+  NULLSTATES = ['DC', 'GU', 'CM', 'VI', 'PR', 'UM', 'MP', 'CZ', 'AS']
+  fedx = {"Duty to Disclose; General Provisions Governing Discovery": "26", 
+      "Depositions to Perpetuate Testimony": "27",
+      "Depositions by Oral Examination": "30", 
+      "Notice or Subpoena Directed to an Organization": "30(b)(6)",
+      "Interrogatories to Parties": "33", 
+      "Producing Documents, Electronically Stored Information, and Tangible Things, or Entering onto Land, for Inspection and Other Purposes": "34", 
+      "Physical and Mental Examinations": "35", 
+      "Requests for Admission": "36"}
+  
+  fednotyet = {"Summons": "4", 
+      "General Rules of Pleading": "8", 
+      "Motion to Dismiss for lack of subject-matter jurisdiction" : "12(b)(1)",
+      "Motion to Dismiss for lack of personal jurisdiction" : "12(b)(2)",
+      "Motion to Dismiss for improper venue" : "12(b)(3)",
+      "Motion to Dismiss for insufficient process" : "12(b)(4)",
+      "Motion to Dismiss for insufficient service of process" : "12(b)(5)",
+      "Motion to Dismiss for  failure to state a claim upon which relief can be granted" : "12(b)(6)",
+      "Motion to Dismiss for failure to join a party" : "12(b)(7)",
+      "Discovery Plan": "26(f)(3)",
+      "Stipulations About Discovery Procedure": "29", 
+      "Depositions by Written Questions": "31", 
+      "Failure to Make Disclosures or to Cooperate in Discovery; Sanctions": "37", 
+      "Subpoena": "45", 
+      "Instructions to the Jury; Objections; Preserving a Claim of Error": "51",
+      "Default; Default Judgment": "55", 
+      "Summary Judgment": "56", 
+      "Title": "85"}
+      
+  fedno = {  
+      "Actions Relating to Unincorporated Associations": "23.2", 
+      "Amended and Supplemental Pleadings": "15", 
+      "Applicability of the Rules in General; Removed Actions": "81", 
+      "Class Actions": "23", 
+      "Commencing an Action": "3", 
+      "Computing and Extending Time; Time for Motion Papers": "6", 
+      "Consolidation; Separate Trials": "42", 
+      "Constitutional Challenge to a Statute's Notice, Certification, and Intervention": "5.1", 
+      "Counterclaim and Crossclaim": "13", 
+      "Declaratory Judgment": "57", 
+      "Defenses and Objections: When and How Presented; Motion for Judgment on the Pleadings; Consolidating Motions; Waiving Defenses; Pretrial Hearing": "12", 
+      "Deposit into Court": "67", 
+      "Derivative Actions": "23.1", 
+      "Determining Foreign Law": "44.1", 
+      "Disclosure Statement": "7.1", 
+      "Dismissal of Actions": "41", 
+      "Enforcing Relief For or Against a Nonparty": "71", 
+      "Enforcing a Judgment for a Specific Act": "70", 
+      "Entering Judgment": "58", 
+      "Execution": "69", 
+      "Findings and Conclusions by the Court; Judgment on Partial Findings": "52", 
+      "Form of Pleadings": "10", 
+      "Hearing Motions; Submission on Briefs": "78", 
+      "Indicative Ruling on a Motion for Relief That is Barred by a Pending Appeal": "62.1", 
+      "Injunctions and Restraining Orders": "65", 
+      "Interpleader": "22", 
+      "Intervention": "24", 
+      "Joinder of Claims": "18", 
+      "Judgment as a Matter of Law in a Jury Trial; Related Motion for a New Trial; ": "50", 
+      "Judgment; Costs": "54", 
+      "Masters": "53", 
+      "Misjoinder and Nonjoinder of Parties": "21", 
+      "New Trial; Altering or Amending a Judgment": "59", 
+      "Number of Jurors; Verdict; Polling": "48", 
+      "Objecting to a Ruling or Order": "46", 
+      "Offer of Judgment": "68", 
+      "Permissive Joinder of Parties": "20", 
+      "Persons Before Whom Depositions May Be Taken": "28", 
+      "Plaintiff and Defendant; Capacity; Public Officers": "17", 
+      "Pleading Special Matters": "9", 
+      "Pleadings Allowed; Form of Motions and Other Papers": "7",
+      "Pretrial Conferences; Scheduling; Management": "16", 
+      "Privacy Protection For Filings Made with the Court": "5.2", 
+      "Proving an Official Record": "44", 
+      "Receivers": "66", 
+      "Relief from a Judgment or Order": "60", 
+      "Required Joinder of Parties": "19", 
+      "Right to a Jury Trial; Demand": "38", 
+      "Scheduling Cases for Trial": "40", 
+      "Selecting Jurors": "47", 
+      "Serving Other Process": "4.1", 
+      "Serving and Filing Pleadings and Other Papers": "5", 
+      "Signing Pleadings, Motions, and Other Papers; Representations to the Court; Sanctions": "11", 
+      "Special Verdict; General Verdict and Questions": "49", 
+      "Substitution of Parties": "25", 
+      "Taking Testimony": "43", 
+      "Third-Party Practice": "14", 
+      "Trial by Jury or by the Court": "39", 
+      "Using Depositions in Court Proceedings": "32"}
